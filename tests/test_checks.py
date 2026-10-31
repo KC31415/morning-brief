@@ -109,3 +109,22 @@ def test_reconciliation_thresholds(gap, expected):
 def test_overall_is_worst_status():
     rs = [checks.CheckResult("x", "A", Status.OK, ""), checks.CheckResult("x", "B", Status.WARN, "")]
     assert checks.overall_status(rs) == Status.WARN
+
+
+# ---------- timezone handling ----------
+def test_checks_accept_timezone_aware_as_of():
+    # Production passes datetime.now(timezone.utc); stored dates are naive.
+    aware = pd.Timestamp("2026-10-30 11:00", tz="UTC")
+    r = checks.check_freshness(make_series("A"), [inst("A")], aware, CFG)
+    assert r[0].status == Status.OK
+
+
+def test_aware_and_naive_as_of_give_same_session():
+    assert checks.expected_session(pd.Timestamp("2026-10-30 11:00", tz="UTC")) == checks.expected_session(AS_OF)
+
+
+def test_aware_as_of_is_read_as_new_york_time():
+    # Same instant, same answer, whichever zone it is expressed in.
+    utc = pd.Timestamp("2026-10-30 01:00", tz="UTC")  # still Thu 29th in New York
+    assert checks.expected_session(utc) == pd.Timestamp("2026-10-28")
+    assert checks.expected_session(utc.tz_convert("Asia/Tokyo")) == pd.Timestamp("2026-10-28")

@@ -40,8 +40,14 @@ def expected_session(as_of: pd.Timestamp) -> pd.Timestamp:
 
     Ignores exchange holidays on purpose; a holiday shows up as a WARN, which is
     the honest outcome (a human should glance at it), not a FAIL.
+
+    Stored dates are naive, so a timezone-aware `as_of` is converted to New York
+    time and made naive. A naive `as_of` is taken as already being local.
     """
-    return (pd.Timestamp(as_of).normalize() - pd.offsets.BDay(1)).normalize()
+    ts = pd.Timestamp(as_of)
+    if ts.tz is not None:
+        ts = ts.tz_convert("America/New_York").tz_localize(None)
+    return (ts.normalize() - pd.offsets.BDay(1)).normalize()
 
 
 def bdays_between(start: pd.Timestamp, end: pd.Timestamp) -> int:
