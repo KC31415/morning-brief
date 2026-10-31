@@ -146,3 +146,28 @@ def test_headlines_show_publication_date_next_to_source(tmp_path, monkeypatch):
     text = [m.value for m in at.markdown]
     assert any("**EIA** (2026-10-30):" in t for t in text)
     assert any("**ECB**:" in t for t in text)
+
+
+def test_single_warning_banner_is_singular(tmp_path, monkeypatch):
+    db = tmp_path / "brief.db"
+    conn = sqlite3.connect(db)
+    conn.executescript(storage.SCHEMA)
+    end = checks.expected_session(datetime.now(timezone.utc)) - pd.offsets.BDay(1)  # one session stale
+    storage.upsert_prices(conn, yield_series("^TNX", end))
+    conn.close()
+    cfg = config.load_config()
+    cfg.update(instruments=[i for i in cfg["instruments"] if i["ticker"] == "^TNX"], reconcile=[])
+    monkeypatch.setattr(config, "DB_PATH", db)
+    monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
+    monkeypatch.setattr(config, "load_config", lambda: cfg)
+
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+
+    assert at.warning[0].value.startswith("1 data warning.")
+
+
+def test_table_has_no_as_of_column_and_keeps_cross_check(tmp_path, monkeypatch):
+    at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": None, "headlines": []})
+    tables = [d.value for d in at.dataframe if "name" in d.value.columns]
+    assert tables and all("as of" not in t.columns and "cross-check" in t.columns for t in tables)
+    assert not at.columns  # side-by-side tables clip the cross-check column

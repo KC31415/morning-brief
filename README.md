@@ -1,8 +1,8 @@
 # Morning Brief
 
-![tests](https://github.com/YOUR_USERNAME/morning-brief/actions/workflows/ci.yml/badge.svg)
+![tests](https://github.com/KC31415/morning-brief/actions/workflows/ci.yml/badge.svg)
 
-**Live app:** YOUR_STREAMLIT_URL
+**Live app:** https://kechun-morning-brief.streamlit.app
 
 A pre-open market dashboard that puts the latest cross-asset moves and a short, sourced news brief on one page, and **tells you when its own data is wrong.**
 
@@ -80,8 +80,8 @@ pytest -q
 
 ## What I'd do differently / next
 
-YOUR OWN WORDS: what you learned building this version, where Claude Code helped or was wrong, what you'd change.
+The starter code passed all 21 of its tests and still couldn’t finish a real refresh: the tests used timezone-free times, and production didn’t. Since then I test with the same kinds of inputs the code sees in production, and I run against live data early. Next I’d add exchange holiday calendars, because Nikkei holidays still show up as false gap warnings. I’d also tune the sanity thresholds on more live history, since right now they’re judgment calls. Reading the AI summaries by hand taught me that citation checks prove a headline exists, not that it supports the bullet. And I’d look for a licensed news source, because sticking to official feeds with clear reuse terms often leaves the brief empty.
 
 ## Built with
 
-Python, pandas, SQLite, Streamlit, GitHub Actions. I used Claude Code throughout; see notes on where it helped and where I had to correct it: YOUR NOTES.
+Python, pandas, SQLite, Streamlit and GitHub Actions, with data from yfinance, FRED, the ECB and official RSS feeds. The starter code was generated with Claude. I then used Claude Code to find and fix bugs, one commit and regression test at a time. Most bugs only appeared on real data, like a crash when the API response started with a thinking block instead of text. Each bug, how it was found, and what changed is logged in docs/build-notes.md.

@@ -40,9 +40,10 @@ problems = [r for r in results if r.status != checks.Status.OK]
 if overall == checks.Status.OK:
     st.success("All data checks passed.")
 elif overall == checks.Status.WARN:
-    st.warning(f"{len(problems)} data warnings. Numbers flagged below may be stale or unusual.")
+    st.warning(f"{moves.count_label(len(problems), 'data warning', 'data warnings')}. Numbers flagged below may be stale or unusual.")
 else:
-    st.error(f"{sum(r.status == checks.Status.FAIL for r in problems)} data checks FAILED. Do not rely on flagged rows.")
+    n_failed = sum(r.status == checks.Status.FAIL for r in problems)
+    st.error(f"{moves.count_label(n_failed, 'data check', 'data checks')} FAILED. Do not rely on flagged rows.")
 if problems:
     with st.expander("Check details"):
         st.dataframe(
@@ -61,7 +62,7 @@ for inst in cfg["instruments"]:
     flag = FLAG[by_ticker.get(inst["ticker"], checks.Status.OK)]  # same results as the banner
     if len(g) < 2:
         rows.append({"group": inst["group"], "name": inst["name"], "last": None, "Change": "n/a",
-                     "from → to": None, "basis": None, "as of": None, "source": inst["source"], "cross-check": cross_check, "flag": flag})
+                     "from → to": None, "basis": None, "source": inst["source"], "cross-check": cross_check, "flag": flag})
         continue
     last, prev = g["close"].iloc[-1], g["close"].iloc[-2]
     latest = g.iloc[-1]
@@ -69,15 +70,13 @@ for inst in cfg["instruments"]:
     rows.append({"group": inst["group"], "name": inst["name"], "last": moves.format_last(last, inst["kind"], inst["group"]), "Change": change,
                  "from → to": moves.date_span(g["date"].iloc[-2], latest["date"]),
                  "basis": moves.change_basis(latest["date"], latest["fetched_at"], cfg["sessions"][inst["session"]]),
-                 "as of": g["date"].iloc[-1].strftime("%Y-%m-%d"),
                  "source": inst["source"], "cross-check": cross_check, "flag": flag})
 table = pd.DataFrame(rows)
 
-cols = st.columns(2)
-for i, (group, g) in enumerate(table.groupby("group", sort=False)):
-    with cols[i % 2]:
-        st.subheader(group)
-        st.dataframe(g.drop(columns="group"), hide_index=True, width="stretch")
+# One table per row: side by side, the rightmost columns get clipped on a laptop screen
+for group, g in table.groupby("group", sort=False):
+    st.subheader(group)
+    st.dataframe(g.drop(columns="group"), hide_index=True, width="stretch")
 
 st.caption("Each change compares a ticker's last two rows, so periods differ by market. "
            "live = that session was still open when fetched; it is not a real-time price.")

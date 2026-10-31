@@ -84,3 +84,8 @@ def test_cross_check_label_is_short_and_shows_the_result(status, mark):
 def test_published_date_is_shown_when_known():
     assert moves.published_date("2026-10-30T14:00:00+00:00") == "2026-10-30"
     assert moves.published_date(None) is None
+
+
+def test_banner_counts_use_the_right_plural():
+    assert moves.count_label(1, "data warning", "data warnings") == "1 data warning"
+    assert moves.count_label(2, "data warning", "data warnings") == "2 data warnings"
