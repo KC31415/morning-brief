@@ -60,12 +60,13 @@ def summarize(items: list[dict]) -> dict:
     try:
         import anthropic
 
-        prompt = build_prompt(items)
+        # Save each piece as soon as we have it: failed runs are the ones worth reviewing
+        result["prompt"] = build_prompt(items)
         msg = anthropic.Anthropic().messages.create(
-            model=MODEL, max_tokens=800, messages=[{"role": "user", "content": prompt}]
+            model=MODEL, max_tokens=800, messages=[{"role": "user", "content": result["prompt"]}]
         )
-        raw = msg.content[0].text
-        result.update(prompt=prompt, raw_response=raw, bullets=validate(raw, items))
+        result["raw_response"] = msg.content[0].text
+        result["bullets"] = validate(result["raw_response"], items)
     except Exception as exc:
         log.exception("summary failed")
         result["error"] = f"summary failed: {exc}"
