@@ -108,3 +108,13 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **Why:** thinking counts toward `max_tokens`. At 800, the model could use most or all of the limit on thinking, leaving no text block or JSON cut off mid-way, and either one loses the bullets.
 - **How it was found:** reviewing the limit while fixing the thinking-block bug. It hasn't been seen failing on a real response.
 - **What changed:** `max_tokens` went from 800 to 2000. That leaves much more room but isn't a guarantee, so the "no text block" and parse errors stay in place as the fallback.
+
+## 17. Padded news bullets
+
+- **What broke:** the live summary worked, but it padded irrelevant personal-finance headlines with speculation, such as "may be relevant to healthcare-exposed names at the open." The prompt demanded 3 to 5 bullets, so it had to produce them even with nothing to say, and the only feed returning items was mostly personal finance.
+- **How it was found:** reading the live bullets against their headlines by hand. No automated check caught it, and none could have: citation validation proves a headline exists, not that it supports the bullet. Those padded bullets cited real headlines and passed.
+- **Why the Fed and CNBC feeds returned 0 items:** the 18-hour cutoff on a weekend, not broken URLs. Checked on Saturday Oct 31 at 17:32 UTC, when the cutoff was Friday 23:32 UTC. Both returned HTTP 200 with items (Fed 20, CNBC 30), but the newest were Thursday 20:30 and Friday 11:16 UTC. The Fed feed's parser warning is a harmless charset mismatch, and its entries still parse.
+- **Feeds:** replaced MarketWatch top stories with FT Markets, WSJ Markets and Investing.com stock news. Through `fetch_headlines` at that time they returned 8, 1 and 10 items inside the cutoff.
+- **Prompt:** now asks for 0 to 5 bullets, says what counts as market news, returns `[]` if nothing qualifies, and forbids phrasing like "may be relevant" or "could affect" unless the headline itself says it.
+- **Page:** an empty list shows "No market-moving headlines overnight". If validation drops every bullet, the run now records an error, so bad citations can't look like a quiet night.
+- **Limits:** the tests check the prompt's wording and how the code handles an empty answer, not whether the model obeys. Only reading live output can check that, so manual review stays. The feeds can't be tested offline, and the 18-hour cutoff also means a Monday pre-open run misses Friday afternoon's news.
