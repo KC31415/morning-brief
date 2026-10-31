@@ -48,7 +48,7 @@ if problems:
         st.dataframe(
             pd.DataFrame([{"status": r.status.name, "check": r.check, "ticker": r.ticker, "detail": r.detail}
                           for r in sorted(problems, key=lambda r: -r.status)]),
-            hide_index=True, use_container_width=True,
+            hide_index=True, width="stretch",
         )
 
 # ---- 2. Latest change by asset class ----
@@ -77,7 +77,7 @@ cols = st.columns(2)
 for i, (group, g) in enumerate(table.groupby("group", sort=False)):
     with cols[i % 2]:
         st.subheader(group)
-        st.dataframe(g.drop(columns="group"), hide_index=True, use_container_width=True)
+        st.dataframe(g.drop(columns="group"), hide_index=True, width="stretch")
 
 st.caption("Each change compares a ticker's last two rows, so periods differ by market. "
            "live = that session was still open when fetched; it is not a real-time price.")
