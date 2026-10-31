@@ -1,5 +1,6 @@
 """Each row must say what period its change covers."""
 import sys
+from urllib.parse import urlparse
 from pathlib import Path
 
 import pandas as pd
@@ -50,3 +51,9 @@ def test_news_feeds_are_market_focused():
     urls = [f["url"] for f in load_config()["news_feeds"]]
     assert not [u for u in urls if "mw_topstories" in u]  # mostly personal finance
     assert len(urls) == len(set(urls))
+
+
+def test_news_feeds_are_official_sources_with_clear_reuse_terms():
+    # See build notes: each host's terms allow showing its headlines with links.
+    hosts = {urlparse(f["url"]).hostname for f in load_config()["news_feeds"]}
+    assert hosts == {"www.federalreserve.gov", "www.ecb.europa.eu", "apps.bea.gov", "www.eia.gov"}

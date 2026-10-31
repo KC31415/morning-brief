@@ -60,12 +60,12 @@ reconcile:
   - {a: ^IRX,     b: DTB3,       warn: 0.08, fail: 0.24}   # (0.060)
   - {a: EURUSD=X, b: ECB_EURUSD, warn: 0.01, fail: 0.03}   # (0.0077) ECB fixes near 14:15 CET
 
+# Official sources only: see docs/build-notes.md for why, before adding a publisher.
 news_feeds:
   - {name: Federal Reserve, url: "https://www.federalreserve.gov/feeds/press_all.xml"}
-  - {name: CNBC Markets,    url: "https://www.cnbc.com/id/20910258/device/rss/rss.html"}
-  - {name: FT Markets,      url: "https://www.ft.com/markets?format=rss"}
-  - {name: WSJ Markets,     url: "https://feeds.content.dowjones.io/public/rss/RSSMarketsMain"}
-  - {name: Investing.com,   url: "https://www.investing.com/rss/news_25.rss"}
+  - {name: ECB,             url: "https://www.ecb.europa.eu/rss/press.html"}
+  - {name: BEA,             url: "https://apps.bea.gov/rss/rss.xml"}
+  - {name: EIA,             url: "https://www.eia.gov/rss/todayinenergy.xml"}
 
 checks:
   lookback_days: 60          # history used for volatility in the sanity check

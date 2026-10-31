@@ -124,3 +124,21 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **What broke:** a flat 18-hour lookback meant a Monday 7am run only reached Sunday afternoon, so anything published after Friday's close was lost.
 - **How it was found:** working through why the Fed and CNBC feeds were empty on a Saturday.
 - **What changed:** the cutoff is now 4pm New York on the prior business day. Friday's close on Monday, the previous day's close otherwise. It ignores exchange holidays, like the freshness check.
+
+## 19. Replacing news feeds for public deployment
+
+- **Why:** a public page republishes each feed's headlines and summaries of them, so a feed being reachable isn't enough. I read each publisher's terms on Oct 31, 2026. This is my reading, not legal advice.
+
+| Feed | What the terms say | Decision |
+|---|---|---|
+| Federal Reserve | Website information is public domain unless otherwise indicated, and may be copied with the Board cited | Keep |
+| ECB | Free use if reproduced accurately with the ECB cited as source | Add |
+| EIA | US government publications are public domain; acknowledge the source and date | Add |
+| BEA | No reuse statement found on the page I read; relying on the general rule that US federal government works aren't copyrighted | Add |
+| CNBC | NBCUniversal terms give a personal-use license and bar other use without written agreement | Remove |
+| Investing.com | Prohibits using or displaying its data without written permission | Remove |
+| FT, WSJ | Subscription publishers, removed by decision; I didn't read their terms | Remove |
+
+- **What changed:** the feeds are now Fed, ECB, BEA and EIA Today in Energy. Each returned items when checked, but the newest were 1 to 2 days old on a Saturday. BLS and USDA returned 403 to the feed parser, and Treasury's feed URL returned 404, so they aren't included.
+- **Trade-off:** the brief now only covers official releases, not market news like company results, and it will often be empty. That's the cost of a public page. The empty-list message handles it honestly.
+- **Still needed:** the page shows each source's name with its link. EIA asks for the publication date, and the ECB asks for accuracy, which an LLM summary can't guarantee, so the "check sources" caption matters.
