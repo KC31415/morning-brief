@@ -141,4 +141,4 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 
 - **What changed:** the feeds are now Fed, ECB, BEA and EIA Today in Energy. Each returned items when checked, but the newest were 1 to 2 days old on a Saturday. BLS and USDA returned 403 to the feed parser, and Treasury's feed URL returned 404, so they aren't included.
 - **Trade-off:** the brief now only covers official releases, not market news like company results, and it will often be empty. That's the cost of a public page. The empty-list message handles it honestly.
-- **Still needed:** the page shows each source's name with its link. EIA asks for the publication date, and the ECB asks for accuracy, which an LLM summary can't guarantee, so the "check sources" caption matters.
+- **Attribution:** the headline list shows each source's name, publication date and link, which covers EIA's request for the date. The ECB asks for accuracy, which an LLM summary can't guarantee, so the "check sources" caption matters.
