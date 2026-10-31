@@ -46,3 +46,18 @@ def test_ticker_with_only_nan_closes_is_missing_not_fatal(monkeypatch):
     monkeypatch.setitem(sys.modules, "yfinance", fake_yfinance({"A": [np.nan, np.nan], "B": [50.0, 51.0]}))
     conn = store(ingest.fetch_all([inst("A"), inst("B")]))
     assert [t for (t,) in conn.execute("SELECT DISTINCT ticker FROM prices")] == ["B"]
+
+
+def test_weekend_rows_are_dropped_and_logged(monkeypatch, caplog):
+    class Ticker:
+        def __init__(self, ticker):
+            pass
+
+        def history(self, **kwargs):
+            idx = pd.DatetimeIndex(["2026-10-29", "2026-10-30", "2026-10-31"], tz="Europe/London", name="Date")
+            return pd.DataFrame({"Close": [1.33, 1.34, 1.35]}, index=idx)
+
+    monkeypatch.setitem(sys.modules, "yfinance", types.SimpleNamespace(Ticker=Ticker))
+    df = ingest.fetch_all([inst("GBPUSD=X")])
+    assert list(pd.to_datetime(df["date"]).dt.day_of_week) == [3, 4]
+    assert "GBPUSD=X" in caplog.text and "weekend" in caplog.text

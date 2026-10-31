@@ -56,3 +56,9 @@ Bugs found while building this, how each was found, and what changed.
 - **What broke:** Yahoo returned only one row for `USDCNH=X`, and `CNH=X` was the same. `CNH=F` had 33 rows, and `USDCNY=X` is onshore yuan, which is a different rate.
 - **How it was found:** the first live run warned on gaps and sanity for this ticker, and I tried the alternatives directly.
 - **What changed:** removed from the config with no replacement. Removing it exposed a second bug: `check_gaps` looped over every ticker in the database, so old CNH rows would have kept warning. `run_all` now only judges configured tickers.
+
+## 10. Weekend-dated rows
+
+- **What broke:** a Saturday run stored a GBP/USD row dated Saturday, so its change ran Friday to Saturday while EUR/USD's ran Thursday to Friday.
+- **How it was found:** the from and to dates of each ticker's last two rows, after the first live run.
+- **What changed:** `fetch_all` drops weekend-dated rows from every source and logs a warning per ticker. This filters new data only, so a row already in a database stays there.

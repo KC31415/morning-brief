@@ -67,9 +67,18 @@ def fetch_all(instruments: list[dict], days: int = 120) -> pd.DataFrame:
     yf_tickers = [i["ticker"] for i in instruments if i["source"] == "yfinance"]
     fred_ids = [i["ticker"] for i in instruments if i["source"] == "fred"]
     df = pd.concat([fetch_yfinance(yf_tickers, days), fetch_fred(fred_ids, days)], ignore_index=True)
+    df = _drop_weekends(df)
     df["fetched_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     log.info("fetched %d rows for %d tickers", len(df), df["ticker"].nunique())
     return df[["date", "ticker", "close", "source", "fetched_at"]]
+
+
+def _drop_weekends(df: pd.DataFrame) -> pd.DataFrame:
+    """Daily closes belong to weekdays; a weekend row is a data artifact."""
+    weekend = pd.to_datetime(df["date"]).dt.day_of_week >= 5
+    for t, n in df.loc[weekend, "ticker"].value_counts().items():
+        log.warning("dropped %d weekend rows for %s", n, t)
+    return df[~weekend]
 
 
 def _empty() -> pd.DataFrame:
