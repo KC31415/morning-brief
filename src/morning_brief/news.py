@@ -10,6 +10,10 @@ from morning_brief.checks import expected_session
 log = logging.getLogger(__name__)
 
 
+def _timestamp(entry):
+    return entry.get("published_parsed") or entry.get("updated_parsed")
+
+
 def previous_close(now) -> pd.Timestamp:
     """4pm New York on the prior business day, so Monday's run reaches back to Friday's close."""
     return (expected_session(now) + pd.Timedelta(hours=16)).tz_localize("America/New_York")
@@ -25,8 +29,10 @@ def fetch_headlines(feeds: list[dict], per_feed: int = 15, now=None) -> list[dic
             if parsed.bozo and not parsed.entries:
                 log.warning("feed %s could not be parsed: %s", feed["name"], parsed.bozo_exception)
                 continue
-            for e in parsed.entries[:per_feed]:
-                ts = e.get("published_parsed") or e.get("updated_parsed")
+            # Feeds aren't always newest-first; undated items sort last
+            entries = sorted(parsed.entries, key=lambda e: tuple(_timestamp(e) or ()), reverse=True)
+            for e in entries[:per_feed]:
+                ts = _timestamp(e)
                 published = datetime(*ts[:6], tzinfo=timezone.utc) if ts else None
                 if published and published < cutoff:
                     continue
