@@ -61,3 +61,9 @@ def test_news_feeds_are_official_sources_with_clear_reuse_terms():
 
 def test_dollars_are_escaped_for_markdown():
     assert moves.escape_dollars("$10bn to about $20bn") == r"\$10bn to about \$20bn"
+
+
+def test_prices_show_two_decimals_and_yields_three():
+    assert moves.format_last(1.11834, "price") == "1.12"
+    assert moves.format_last(7614.0, "price") == "7614.00"
+    assert moves.format_last(4.9286, "yield") == "4.929"

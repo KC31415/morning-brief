@@ -15,6 +15,10 @@ def change_basis(row_date: pd.Timestamp, fetched_at: str, session: dict) -> str:
     return "live" if fetched < close else session["complete"]
 
 
+def format_last(value: float, kind: str) -> str:
+    return f"{value:.3f}" if kind == "yield" else f"{value:.2f}"
+
+
 def escape_dollars(text: str) -> str:
     """Streamlit markdown reads $...$ as math, which mangles text like "$10bn to $20bn"."""
     return text.replace("$", r"\$")

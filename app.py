@@ -63,7 +63,7 @@ for inst in cfg["instruments"]:
     last, prev = g["close"].iloc[-1], g["close"].iloc[-2]
     latest = g.iloc[-1]
     change = f"{(last - prev) * 100:+.1f} bp" if inst["kind"] == "yield" else f"{(last / prev - 1) * 100:+.2f}%"
-    rows.append({"group": inst["group"], "name": inst["name"], "last": round(last, 4), "Change": change,
+    rows.append({"group": inst["group"], "name": inst["name"], "last": moves.format_last(last, inst["kind"]), "Change": change,
                  "from → to": moves.date_span(g["date"].iloc[-2], latest["date"]),
                  "basis": moves.change_basis(latest["date"], latest["fetched_at"], cfg["sessions"][inst["session"]]),
                  "as of": g["date"].iloc[-1].strftime("%Y-%m-%d"),
