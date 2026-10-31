@@ -40,15 +40,18 @@ def build_prompt(items: list[dict]) -> str:
     return PROMPT.format(headlines="\n".join(lines))
 
 
-def validate(raw: str, items: list[dict]) -> list[dict]:
-    """Parse the model output and keep only bullets whose citations are real."""
-    valid_ids = {i["id"] for i in items}
+def parse(raw: str) -> list[dict]:
     text = raw.strip()
     if text.startswith("```"):
         text = text.strip("`").removeprefix("json").strip()
-    bullets = json.loads(text)
+    return json.loads(text)
+
+
+def validate(raw: str, items: list[dict]) -> list[dict]:
+    """Parse the model output and keep only bullets whose citations are real."""
+    valid_ids = {i["id"] for i in items}
     kept = []
-    for b in bullets:
+    for b in parse(raw):
         cited = [s for s in b.get("sources", []) if s in valid_ids]
         if b.get("bullet") and cited and len(cited) == len(b["sources"]):
             kept.append({"bullet": b["bullet"].strip(), "sources": cited})
@@ -80,6 +83,9 @@ def summarize(items: list[dict]) -> dict:
             return result
         result["raw_response"] = raw
         result["bullets"] = validate(raw, items)
+        # An empty brief must mean the model found nothing, not that we dropped everything
+        if not result["bullets"] and parse(raw):
+            result["error"] = "summary failed: every bullet had invalid citations"
     except Exception as exc:
         log.exception("summary failed")
         result["error"] = f"summary failed: {exc}"

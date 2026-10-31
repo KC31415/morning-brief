@@ -106,3 +106,10 @@ def test_empty_list_from_model_is_not_an_error(monkeypatch):
     fake_anthropic(monkeypatch, "[]")
     out = summarize(ITEMS)
     assert out["bullets"] == [] and out["error"] is None and out["raw_response"] == "[]"
+
+
+def test_all_bullets_dropped_is_an_error_not_an_empty_brief(monkeypatch):
+    fake_anthropic(monkeypatch, json.dumps([{"bullet": "Made-up claim.", "sources": [9]}]))
+    out = summarize(ITEMS)
+    assert out["bullets"] == []
+    assert out["error"] == "summary failed: every bullet had invalid citations"

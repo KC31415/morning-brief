@@ -94,6 +94,8 @@ if SUMMARY_PATH.exists():
         st.caption(f"AI-generated from the headlines below ({s['model']}). Check sources before acting.")
     elif s.get("error"):
         st.info(s["error"])
+    else:
+        st.info("No market-moving headlines overnight")
     with st.expander(f"All headlines ({len(links)})"):
         for h in links.values():
             st.markdown(f"[{h['id']}] **{h['source']}**: [{h['title']}]({h['link']})")

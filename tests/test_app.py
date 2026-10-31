@@ -1,4 +1,5 @@
 """Run the real Streamlit page against a temporary database."""
+import json
 import sqlite3
 import sys
 from datetime import datetime, timezone
@@ -100,3 +101,28 @@ def test_table_shows_source_and_marks_single_source_unverified(tmp_path, monkeyp
     assert rows.loc["US 10Y yield (FRED)", "cross-check"] == "vs ^TNX"
     assert rows.loc["Gold", "cross-check"] == "unverified"
     assert any("single-source" in c.value for c in at.caption)
+
+
+def run_page_with_summary(tmp_path, monkeypatch, summary):
+    db = tmp_path / "brief.db"
+    conn = sqlite3.connect(db)
+    conn.executescript(storage.SCHEMA)
+    end = checks.expected_session(datetime.now(timezone.utc))
+    storage.upsert_prices(conn, yield_series("^TNX", end))
+    conn.close()
+    path = tmp_path / "summary.json"
+    path.write_text(json.dumps(summary))
+    monkeypatch.setattr(config, "DB_PATH", db)
+    monkeypatch.setattr(config, "SUMMARY_PATH", path)
+    return AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+
+
+def test_empty_brief_says_no_market_moving_headlines(tmp_path, monkeypatch):
+    at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": None, "headlines": []})
+    assert [i.value for i in at.info] == ["No market-moving headlines overnight"]
+
+
+def test_failed_summary_shows_its_error_not_the_empty_message(tmp_path, monkeypatch):
+    error = "summary failed: every bullet had invalid citations"
+    at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": error, "headlines": []})
+    assert [i.value for i in at.info] == [error]
