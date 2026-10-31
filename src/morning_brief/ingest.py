@@ -23,6 +23,10 @@ def fetch_yfinance(tickers: list[str], days: int) -> pd.DataFrame:
     for t in tickers:
         try:
             hist = yf.Ticker(t).history(period=f"{days}d", interval="1d", auto_adjust=False)
+            n_nan = int(hist["Close"].isna().sum()) if not hist.empty else 0
+            if n_nan:
+                log.warning("yfinance returned %d NaN closes for %s; dropping them", n_nan, t)
+                hist = hist.dropna(subset=["Close"])
             if hist.empty:
                 log.warning("yfinance returned no rows for %s", t)
                 continue
