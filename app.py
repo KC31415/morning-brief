@@ -90,7 +90,7 @@ if SUMMARY_PATH.exists():
     if s.get("bullets"):
         for b in s["bullets"]:
             refs = " ".join(f"[[{n}]]({links[n]['link']})" for n in b["sources"] if n in links)
-            st.markdown(f"- {b['bullet']} {refs}")
+            st.markdown(f"- {moves.escape_dollars(b['bullet'])} {refs}")
         st.caption(f"AI-generated from the headlines below ({s['model']}). Check sources before acting.")
     elif s.get("error"):
         st.info(s["error"])
@@ -98,6 +98,6 @@ if SUMMARY_PATH.exists():
         st.info("No market-moving headlines overnight")
     with st.expander(f"All headlines ({len(links)})"):
         for h in links.values():
-            st.markdown(f"[{h['id']}] **{h['source']}**: [{h['title']}]({h['link']})")
+            st.markdown(f"[{h['id']}] **{h['source']}**: [{moves.escape_dollars(h['title'])}]({h['link']})")
 else:
     st.info("No news summary yet.")

@@ -57,3 +57,7 @@ def test_news_feeds_are_official_sources_with_clear_reuse_terms():
     # See build notes: each host's terms allow showing its headlines with links.
     hosts = {urlparse(f["url"]).hostname for f in load_config()["news_feeds"]}
     assert hosts == {"www.federalreserve.gov", "www.ecb.europa.eu", "apps.bea.gov", "www.eia.gov"}
+
+
+def test_dollars_are_escaped_for_markdown():
+    assert moves.escape_dollars("$10bn to about $20bn") == r"\$10bn to about \$20bn"

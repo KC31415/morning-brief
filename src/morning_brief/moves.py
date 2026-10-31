@@ -15,5 +15,10 @@ def change_basis(row_date: pd.Timestamp, fetched_at: str, session: dict) -> str:
     return "live" if fetched < close else session["complete"]
 
 
+def escape_dollars(text: str) -> str:
+    """Streamlit markdown reads $...$ as math, which mangles text like "$10bn to $20bn"."""
+    return text.replace("$", r"\$")
+
+
 def date_span(prev_date: pd.Timestamp, last_date: pd.Timestamp) -> str:
     return f"{prev_date:%a %m-%d} → {last_date:%a %m-%d}"

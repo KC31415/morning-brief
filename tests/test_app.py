@@ -126,3 +126,12 @@ def test_failed_summary_shows_its_error_not_the_empty_message(tmp_path, monkeypa
     error = "summary failed: every bullet had invalid citations"
     at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": error, "headlines": []})
     assert [i.value for i in at.info] == [error]
+
+
+def test_dollar_amounts_do_not_render_as_math(tmp_path, monkeypatch):
+    headline = {"id": 1, "source": "F", "title": "Deal worth $5bn or $6bn", "link": "https://x"}
+    bullet = {"bullet": "From $10bn to about $20bn.", "sources": [1]}
+    at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [bullet], "error": None, "headlines": [headline]})
+    text = [m.value for m in at.markdown]
+    assert any(r"From \$10bn to about \$20bn." in t for t in text)
+    assert any(r"Deal worth \$5bn or \$6bn" in t for t in text)
