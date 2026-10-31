@@ -1,15 +1,23 @@
 """Pull recent headlines from public RSS feeds."""
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import feedparser
+import pandas as pd
+
+from morning_brief.checks import expected_session
 
 log = logging.getLogger(__name__)
 
 
-def fetch_headlines(feeds: list[dict], hours: int = 18, per_feed: int = 15) -> list[dict]:
-    """Return recent items as dicts with id, source, title, summary, link, published."""
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+def previous_close(now) -> pd.Timestamp:
+    """4pm New York on the prior business day, so Monday's run reaches back to Friday's close."""
+    return (expected_session(now) + pd.Timedelta(hours=16)).tz_localize("America/New_York")
+
+
+def fetch_headlines(feeds: list[dict], per_feed: int = 15, now=None) -> list[dict]:
+    """Return items since the previous US close as dicts with id, source, title, summary, link, published."""
+    cutoff = previous_close(now if now is not None else datetime.now(timezone.utc))
     items = []
     for feed in feeds:
         try:

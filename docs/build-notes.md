@@ -118,3 +118,9 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **Prompt:** now asks for 0 to 5 bullets, says what counts as market news, returns `[]` if nothing qualifies, and forbids phrasing like "may be relevant" or "could affect" unless the headline itself says it.
 - **Page:** an empty list shows "No market-moving headlines overnight". If validation drops every bullet, the run now records an error, so bad citations can't look like a quiet night.
 - **Limits:** the tests check the prompt's wording and how the code handles an empty answer, not whether the model obeys. Only reading live output can check that, so manual review stays. The feeds can't be tested offline, and the 18-hour cutoff also means a Monday pre-open run misses Friday afternoon's news.
+
+## 18. News cutoff missing Friday afternoon
+
+- **What broke:** a flat 18-hour lookback meant a Monday 7am run only reached Sunday afternoon, so anything published after Friday's close was lost.
+- **How it was found:** working through why the Fed and CNBC feeds were empty on a Saturday.
+- **What changed:** the cutoff is now 4pm New York on the prior business day. Friday's close on Monday, the previous day's close otherwise. It ignores exchange holidays, like the freshness check.
