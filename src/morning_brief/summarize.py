@@ -15,9 +15,17 @@ log = logging.getLogger(__name__)
 MODEL = os.getenv("SUMMARY_MODEL", "claude-haiku-5-5")
 
 PROMPT = """You are preparing a pre-open market brief for a trading desk.
-Using ONLY the headlines below, write 3 to 5 bullets on what matters for today's open.
+Using ONLY the headlines below, write 0 to 5 bullets on what matters for today's open.
 Do not add facts, numbers or context that are not in the headlines.
 Each bullet must cite the ids of the headlines it is based on.
+
+Only use headlines that report market news: central banks, economic data, company
+results or deals, government policy, geopolitics, or moves in markets themselves.
+Ignore personal finance, retirement advice, lifestyle and general explainers.
+If nothing is market-relevant, respond with []. Never pad to reach a number of bullets.
+
+State only what the headlines say. Do not speculate about impact: no phrasing such as
+"may be relevant" or "could affect" unless the headline itself says it.
 
 Respond with JSON only, in this form:
 [{{"bullet": "...", "sources": [1, 4]}}]

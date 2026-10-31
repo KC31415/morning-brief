@@ -87,3 +87,22 @@ def test_response_without_text_block_saves_an_error(monkeypatch):
     assert out["error"] == "summary failed: response had no text block"
     assert out["prompt"] == build_prompt(ITEMS)
     assert out["raw_response"] is None and out["bullets"] == []
+
+
+def test_prompt_allows_an_empty_answer():
+    prompt = build_prompt(ITEMS)
+    assert "0 to 5 bullets" in prompt and "3 to 5" not in prompt
+    assert "respond with []" in prompt
+
+
+def test_prompt_forbids_speculation_and_padding():
+    prompt = build_prompt(ITEMS)
+    assert '"may be relevant"' in prompt and '"could affect"' in prompt
+    assert "unless the headline itself says it" in prompt
+    assert "personal finance" in prompt
+
+
+def test_empty_list_from_model_is_not_an_error(monkeypatch):
+    fake_anthropic(monkeypatch, "[]")
+    out = summarize(ITEMS)
+    assert out["bullets"] == [] and out["error"] is None and out["raw_response"] == "[]"
