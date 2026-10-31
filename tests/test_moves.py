@@ -65,10 +65,10 @@ def test_dollars_are_escaped_for_markdown():
     assert moves.escape_dollars("$10bn to about $20bn") == r"\$10bn to about \$20bn"
 
 
-def test_prices_show_two_decimals_and_yields_three():
-    assert moves.format_last(1.11834, "price") == "1.12"
-    assert moves.format_last(7614.0, "price") == "7614.00"
-    assert moves.format_last(4.9286, "yield") == "4.929"
+def test_decimals_depend_on_asset_type():
+    assert moves.format_last(1.11834, "price", "FX") == "1.1183"
+    assert moves.format_last(7614.0, "price", "Equities") == "7614.00"
+    assert moves.format_last(4.9286, "yield", "Rates") == "4.929"
 
 
 def test_fred_3m_row_name_matches_its_yahoo_row():

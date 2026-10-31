@@ -24,8 +24,9 @@ def cross_check_label(partner_source: str, status: Status) -> str:
     return f"{CHECK_MARKS[status]} {SOURCE_LABELS[partner_source]}"
 
 
-def format_last(value: float, kind: str) -> str:
-    return f"{value:.3f}" if kind == "yield" else f"{value:.2f}"
+def format_last(value: float, kind: str, group: str) -> str:
+    decimals = 3 if kind == "yield" else 4 if group == "FX" else 2
+    return f"{value:.{decimals}f}"
 
 
 def escape_dollars(text: str) -> str:
