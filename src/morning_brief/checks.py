@@ -115,6 +115,17 @@ def daily_changes(series: pd.Series, kind: str) -> pd.Series:
     return series.diff() if kind == "yield" else series.pct_change()
 
 
+def robust_vol(changes: pd.Series) -> float:
+    """Typical size of a change that a few bad prints can't inflate.
+
+    The median absolute deviation, scaled by 1.4826 so it equals the standard
+    deviation on normal data. If most changes are zero the MAD is 0 even though
+    the series moves, so fall back to the standard deviation.
+    """
+    mad = (changes - changes.median()).abs().median()
+    return 1.4826 * mad if mad > 0 else changes.std()
+
+
 def check_sanity(prices: pd.DataFrame, instruments: list[dict], cfg: dict) -> list[CheckResult]:
     out = []
     for inst in instruments:
@@ -131,7 +142,7 @@ def check_sanity(prices: pd.DataFrame, instruments: list[dict], cfg: dict) -> li
                                    f"no change in the last {cfg['frozen_changes']} sessions (frozen feed?)"))
             continue
         history, latest = chg.iloc[:-1], chg.iloc[-1]
-        sd = history.std()
+        sd = robust_vol(history)
         if not np.isfinite(sd) or sd == 0:
             out.append(CheckResult("sanity", t, Status.FAIL, "price has not moved in the window (frozen feed?)"))
             continue
@@ -142,7 +153,7 @@ def check_sanity(prices: pd.DataFrame, instruments: list[dict], cfg: dict) -> li
             status = Status.WARN
         else:
             status = Status.OK
-        out.append(CheckResult("sanity", t, status, f"latest move is {z:.1f} std devs"))
+        out.append(CheckResult("sanity", t, status, f"latest move is {z:.1f} robust std devs"))
     return out
 
 

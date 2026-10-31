@@ -143,3 +143,28 @@ def test_last_ten_changes_all_zero_fails():
 
 def test_nine_zero_changes_is_not_frozen():
     assert checks.check_sanity(flat_tail(9), [inst("A")], CFG)[0].status == Status.OK
+
+
+# ---------- robust volatility ----------
+def test_reversal_after_bad_print_still_fails():
+    # Yesterday's +50% print must not inflate the baseline that judges today's reversal.
+    df = make_series("A")
+    df.loc[df.index[-2], "close"] *= 1.5
+    assert checks.check_sanity(df, [inst("A")], CFG)[0].status == Status.FAIL
+
+
+def test_robust_vol_matches_std_on_normal_data():
+    # The MAD is scaled so the 4 and 10 thresholds still read as standard deviations.
+    x = pd.Series(np.random.default_rng(0).normal(0, 0.01, 5000))
+    assert checks.robust_vol(x) == pytest.approx(x.std(), rel=0.05)
+
+
+def test_mostly_unchanged_series_falls_back_to_std():
+    # More than half the changes are zero, so the MAD is 0 even though the series moves.
+    df = make_series("Y", start_price=4.0)
+    steps = np.zeros(len(df))
+    steps[::3] = 0.01
+    steps[-1] = 0.01  # a real move today, which a zero baseline would turn into infinite z
+    df["close"] = 4.0 + np.cumsum(steps)
+    r = checks.check_sanity(df, [inst("Y", kind="yield")], CFG)[0]
+    assert r.status == Status.OK

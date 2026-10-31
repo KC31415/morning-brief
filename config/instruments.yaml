@@ -49,6 +49,6 @@ checks:
   stale_warn_bdays: 1        # business days behind expected before WARN
   stale_fail_bdays: 3        # ... before FAIL
   gap_warn: 3                # missing business days in lookback before WARN
-  move_warn_z: 4.0           # daily move this many std devs from normal -> WARN
+  move_warn_z: 4.0           # daily move this many robust std devs (scaled MAD) -> WARN
   move_fail_z: 10.0          # ... this many -> FAIL (almost certainly bad data)
   frozen_changes: 10         # this many unchanged closes in a row -> FAIL (frozen feed)
