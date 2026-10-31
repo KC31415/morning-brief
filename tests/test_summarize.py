@@ -36,11 +36,21 @@ def test_prompt_contains_ids():
     assert "[1]" in build_prompt(ITEMS) and "[2]" in build_prompt(ITEMS)
 
 
+def text_block(text):
+    return types.SimpleNamespace(type="text", text=text)
+
+
+def thinking_block():
+    # Like the real ThinkingBlock, this has no .text attribute
+    return types.SimpleNamespace(type="thinking", thinking="working it out", signature="sig")
+
+
 def fake_anthropic(monkeypatch, response):
     def create(**kwargs):
         if isinstance(response, Exception):
             raise response
-        return types.SimpleNamespace(content=[types.SimpleNamespace(text=response)])
+        blocks = response if isinstance(response, list) else [text_block(response)]
+        return types.SimpleNamespace(content=blocks)
 
     client = types.SimpleNamespace(messages=types.SimpleNamespace(create=create))
     monkeypatch.setitem(sys.modules, "anthropic", types.SimpleNamespace(Anthropic=lambda: client))
@@ -60,3 +70,20 @@ def test_api_failure_keeps_prompt(monkeypatch):
     out = summarize(ITEMS)
     assert out["prompt"] == build_prompt(ITEMS)
     assert out["raw_response"] is None and "api down" in out["error"]
+
+
+def test_thinking_block_before_text_is_skipped(monkeypatch):
+    raw = json.dumps([{"bullet": "Fed on hold.", "sources": [1]}])
+    fake_anthropic(monkeypatch, [thinking_block(), text_block(raw)])
+    out = summarize(ITEMS)
+    assert out["error"] is None
+    assert out["raw_response"] == raw
+    assert [b["bullet"] for b in out["bullets"]] == ["Fed on hold."]
+
+
+def test_response_without_text_block_saves_an_error(monkeypatch):
+    fake_anthropic(monkeypatch, [thinking_block()])
+    out = summarize(ITEMS)
+    assert out["error"] == "summary failed: response had no text block"
+    assert out["prompt"] == build_prompt(ITEMS)
+    assert out["raw_response"] is None and out["bullets"] == []

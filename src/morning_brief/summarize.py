@@ -65,8 +65,13 @@ def summarize(items: list[dict]) -> dict:
         msg = anthropic.Anthropic().messages.create(
             model=MODEL, max_tokens=800, messages=[{"role": "user", "content": result["prompt"]}]
         )
-        result["raw_response"] = msg.content[0].text
-        result["bullets"] = validate(result["raw_response"], items)
+        # The response can start with a thinking block, which has no .text
+        raw = next((b.text for b in msg.content if b.type == "text"), None)
+        if raw is None:
+            result["error"] = "summary failed: response had no text block"
+            return result
+        result["raw_response"] = raw
+        result["bullets"] = validate(raw, items)
     except Exception as exc:
         log.exception("summary failed")
         result["error"] = f"summary failed: {exc}"

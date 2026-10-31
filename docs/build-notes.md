@@ -96,3 +96,9 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 
 - **What:** the Nikkei holiday gaps and yfinance's pandas deprecation warning, both seen on the first live run.
 - **What changed:** added both to the README's known limitations. No code change, by choice.
+
+## 15. Thinking block breaking the LLM summary
+
+- **What broke:** `summarize.py` assumed `msg.content[0]` was a text block. The API can return a thinking block first, which has no `.text`, so a successful response raised `AttributeError` and the page got no bullets. The existing `except` caught it, so the run fell back to headlines, but the response was lost.
+- **How it was found:** the first refresh with a real API key returned HTTP 200 and then logged this error. Earlier tests used a mocked response containing only a text block, so they couldn't catch it.
+- **What changed:** the code now takes the first block where `type == "text"`. If there's none, it saves the error "summary failed: response had no text block" and keeps the prompt. New tests cover a thinking block followed by text, and a thinking block alone.
