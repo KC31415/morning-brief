@@ -27,7 +27,7 @@ Every refresh runs these before anything is displayed:
 | Completeness | A ticker that never arrived, zero or missing prices | Wheat returned no rows → FAIL |
 | Gaps | Holes in recent history | 5 missing days in the last 60 → WARN |
 | Sanity | Moves too large to be real | A 1%-vol asset "moves" 50% → FAIL, almost certainly bad data |
-| Frozen feed | A price that hasn't changed in weeks | Same value for 60 days → FAIL |
+| Frozen feed | A price that hasn't changed in two weeks | Last 10 daily changes all zero → FAIL |
 | Reconciliation | Two sources disagreeing | 10Y yield from Yahoo vs FRED differs by >15bp → FAIL |
 
 Results are stored in a `check_runs` table, so I can query how often each feed has problems:

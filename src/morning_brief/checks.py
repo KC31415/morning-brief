@@ -126,6 +126,10 @@ def check_sanity(prices: pd.DataFrame, instruments: list[dict], cfg: dict) -> li
         if len(chg) < 21:
             out.append(CheckResult("sanity", t, Status.WARN, f"only {len(chg)} changes, too few to judge"))
             continue
+        if (chg.tail(cfg["frozen_changes"]) == 0).all():
+            out.append(CheckResult("sanity", t, Status.FAIL,
+                                   f"no change in the last {cfg['frozen_changes']} sessions (frozen feed?)"))
+            continue
         history, latest = chg.iloc[:-1], chg.iloc[-1]
         sd = history.std()
         if not np.isfinite(sd) or sd == 0:

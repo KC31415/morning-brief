@@ -12,7 +12,7 @@ from morning_brief import checks  # noqa: E402
 from morning_brief.checks import Status  # noqa: E402
 
 CFG = {"lookback_days": 60, "stale_warn_bdays": 1, "stale_fail_bdays": 3,
-       "gap_warn": 3, "move_warn_z": 4.0, "move_fail_z": 10.0}
+       "gap_warn": 3, "move_warn_z": 4.0, "move_fail_z": 10.0, "frozen_changes": 10}
 AS_OF = pd.Timestamp("2026-10-30 11:00")  # a Friday; expected session = Thu 2026-10-29
 
 
@@ -128,3 +128,18 @@ def test_aware_as_of_is_read_as_new_york_time():
     utc = pd.Timestamp("2026-10-30 01:00", tz="UTC")  # still Thu 29th in New York
     assert checks.expected_session(utc) == pd.Timestamp("2026-10-28")
     assert checks.expected_session(utc.tz_convert("Asia/Tokyo")) == pd.Timestamp("2026-10-28")
+
+
+# ---------- recently frozen feed ----------
+def flat_tail(n_changes):
+    df = make_series("A")
+    df.loc[df.index[-n_changes:], "close"] = df["close"].iloc[-n_changes - 1]
+    return df
+
+
+def test_last_ten_changes_all_zero_fails():
+    assert checks.check_sanity(flat_tail(10), [inst("A")], CFG)[0].status == Status.FAIL
+
+
+def test_nine_zero_changes_is_not_frozen():
+    assert checks.check_sanity(flat_tail(9), [inst("A")], CFG)[0].status == Status.OK
