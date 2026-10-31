@@ -12,7 +12,7 @@ from morning_brief import checks  # noqa: E402
 from morning_brief.checks import Status  # noqa: E402
 
 CFG = {"lookback_days": 60, "stale_warn_bdays": 1, "stale_fail_bdays": 3,
-       "gap_warn": 3, "move_warn_z": 4.0, "move_fail_z": 10.0, "frozen_changes": 10}
+       "gap_warn": 3, "move_warn_z": 4.0, "move_fail_z": 10.0, "frozen_changes": 10, "min_rows": 22}
 AS_OF = pd.Timestamp("2026-10-30 11:00")  # a Friday; expected session = Thu 2026-10-29
 
 
@@ -52,14 +52,14 @@ def test_fred_allowed_one_day_lag():
 
 # ---------- completeness ----------
 def test_missing_ticker_fails():
-    r = checks.check_completeness(make_series("A"), [inst("A"), inst("B")])
+    r = checks.check_completeness(make_series("A"), [inst("A"), inst("B")], CFG)
     assert {x.ticker: x.status for x in r} == {"A": Status.OK, "B": Status.FAIL}
 
 
 def test_zero_price_fails():
     df = make_series("A")
     df.loc[df.index[-1], "close"] = 0.0
-    assert checks.check_completeness(df, [inst("A")])[0].status == Status.FAIL
+    assert checks.check_completeness(df, [inst("A")], CFG)[0].status == Status.FAIL
 
 
 # ---------- gaps ----------
@@ -176,3 +176,10 @@ def test_ticker_no_longer_configured_is_not_checked():
     prices = pd.concat([make_series("A"), make_series("OLD", n=1)])
     config = {"instruments": [inst("A")], "checks": CFG}
     assert {r.ticker for r in checks.run_all(prices, config, AS_OF)} == {"A"}
+
+
+# ---------- minimum history ----------
+@pytest.mark.parametrize("n,expected", [(1, Status.WARN), (21, Status.WARN), (22, Status.OK)])
+def test_completeness_warns_below_minimum_rows(n, expected):
+    r = checks.check_completeness(make_series("A", n=n), [inst("A")], CFG)
+    assert r[0].status == expected

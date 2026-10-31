@@ -57,3 +57,25 @@ def test_table_shows_change_span_and_basis(tmp_path, monkeypatch):
     tnx = rows[rows["name"] == "US 10Y yield"].iloc[0]
     assert "bp" in tnx["Change"] and "→" in tnx["from → to"]
     assert tnx["basis"] == "prior US session"
+
+
+def test_short_history_flag_matches_banner(tmp_path, monkeypatch):
+    # One row is a WARN, so the row must not show the FAIL mark under a yellow banner.
+    db = tmp_path / "brief.db"
+    conn = sqlite3.connect(db)
+    conn.executescript(storage.SCHEMA)
+    end = checks.expected_session(datetime.now(timezone.utc))
+    storage.upsert_prices(conn, yield_series("^TNX", end).tail(1))
+    conn.close()
+    cfg = config.load_config()
+    cfg.update(instruments=[i for i in cfg["instruments"] if i["ticker"] == "^TNX"], reconcile=[])
+    monkeypatch.setattr(config, "DB_PATH", db)
+    monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
+    monkeypatch.setattr(config, "load_config", lambda: cfg)
+
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+
+    assert not at.exception
+    assert at.warning and not at.error
+    rows = pd.concat([d.value for d in at.dataframe])
+    assert rows[rows["name"] == "US 10Y yield"].iloc[0]["flag"] == "⚠️"

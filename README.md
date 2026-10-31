@@ -24,7 +24,7 @@ Every refresh runs these before anything is displayed:
 | Check | What it catches | Example |
 |---|---|---|
 | Freshness | A feed that didn't update | Copper's latest close is 3 business days old → FAIL |
-| Completeness | A ticker that never arrived, zero or missing prices | Wheat returned no rows → FAIL |
+| Completeness | A ticker with no stored data, too little history, or zero or missing prices | New ticker has no rows → FAIL; only 1 row → WARN |
 | Gaps | Holes in recent history | 5 missing days in the last 60 → WARN |
 | Sanity | Moves too large to be real | A 1%-vol asset "moves" 50% → FAIL, almost certainly bad data |
 | Frozen feed | A price that hasn't changed in two weeks | Last 10 daily changes all zero → FAIL |

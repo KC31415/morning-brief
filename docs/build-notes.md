@@ -62,3 +62,9 @@ Bugs found while building this, how each was found, and what changed.
 - **What broke:** a Saturday run stored a GBP/USD row dated Saturday, so its change ran Friday to Saturday while EUR/USD's ran Thursday to Friday.
 - **How it was found:** the from and to dates of each ticker's last two rows, after the first live run.
 - **What changed:** `fetch_all` drops weekend-dated rows from every source and logs a warning per ticker. This filters new data only, so a row already in a database stays there.
+
+## 11. Row flags disagreeing with the banner
+
+- **What broke:** `app.py` hard-coded ❌ for any ticker with fewer than two rows, while the banner used the check results. USD/CNH showed ❌ under a yellow banner. Completeness also passed it with a single row.
+- **How it was found:** reading the rendered table from the first live run next to its banner.
+- **What changed:** every row's flag now comes from the same check results as the banner. Completeness WARNs below `min_rows` (22), the history the sanity check needs for 21 changes. A ticker with no data at all still FAILs.

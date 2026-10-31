@@ -62,4 +62,5 @@ checks:
   gap_warn: 3                # missing business days in lookback before WARN
   move_warn_z: 4.0           # daily move this many robust std devs (scaled MAD) -> WARN
   move_fail_z: 10.0          # ... this many -> FAIL (almost certainly bad data)
+  min_rows: 22               # fewer rows than this -> WARN (sanity needs 21 changes to judge)
   frozen_changes: 10         # this many unchanged closes in a row -> FAIL (frozen feed)

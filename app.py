@@ -53,9 +53,10 @@ FLAG = {checks.Status.OK: "", checks.Status.WARN: "⚠️", checks.Status.FAIL: 
 rows = []
 for inst in cfg["instruments"]:
     g = prices[prices["ticker"] == inst["ticker"]].sort_values("date")
+    flag = FLAG[by_ticker.get(inst["ticker"], checks.Status.OK)]  # same results as the banner
     if len(g) < 2:
         rows.append({"group": inst["group"], "name": inst["name"], "last": None, "Change": "n/a",
-                     "from → to": None, "basis": None, "as of": None, "flag": "❌"})
+                     "from → to": None, "basis": None, "as of": None, "flag": flag})
         continue
     last, prev = g["close"].iloc[-1], g["close"].iloc[-2]
     latest = g.iloc[-1]
@@ -63,7 +64,7 @@ for inst in cfg["instruments"]:
     rows.append({"group": inst["group"], "name": inst["name"], "last": round(last, 4), "Change": change,
                  "from → to": moves.date_span(g["date"].iloc[-2], latest["date"]),
                  "basis": moves.change_basis(latest["date"], latest["fetched_at"], cfg["sessions"][inst["session"]]),
-                 "as of": g["date"].iloc[-1].strftime("%Y-%m-%d"), "flag": FLAG[by_ticker.get(inst["ticker"], checks.Status.OK)]})
+                 "as of": g["date"].iloc[-1].strftime("%Y-%m-%d"), "flag": flag})
 table = pd.DataFrame(rows)
 
 cols = st.columns(2)

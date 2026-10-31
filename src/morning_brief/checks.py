@@ -78,7 +78,7 @@ def check_freshness(prices: pd.DataFrame, instruments: list[dict], as_of, cfg: d
     return out
 
 
-def check_completeness(prices: pd.DataFrame, instruments: list[dict]) -> list[CheckResult]:
+def check_completeness(prices: pd.DataFrame, instruments: list[dict], cfg: dict) -> list[CheckResult]:
     out = []
     present = set(prices["ticker"])
     for inst in instruments:
@@ -91,6 +91,8 @@ def check_completeness(prices: pd.DataFrame, instruments: list[dict]) -> list[Ch
             out.append(CheckResult("completeness", t, Status.FAIL, f"{int(s.isna().sum())} missing values"))
         elif inst["kind"] == "price" and (s <= 0).any():
             out.append(CheckResult("completeness", t, Status.FAIL, "zero or negative price"))
+        elif len(s) < cfg["min_rows"]:
+            out.append(CheckResult("completeness", t, Status.WARN, f"only {len(s)} rows, need {cfg['min_rows']}"))
         else:
             out.append(CheckResult("completeness", t, Status.OK, f"{len(s)} rows"))
     return out
@@ -191,7 +193,7 @@ def run_all(prices: pd.DataFrame, config: dict, as_of) -> list[CheckResult]:
     # Rows outlive an instrument in the database; only judge what is configured now
     prices = prices[prices["ticker"].isin([i["ticker"] for i in insts])]
     return (
-        check_completeness(prices, insts)
+        check_completeness(prices, insts, cfg)
         + check_freshness(prices, insts, as_of, cfg)
         + check_gaps(prices, cfg)
         + check_sanity(prices, insts, cfg)
