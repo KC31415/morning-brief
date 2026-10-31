@@ -67,3 +67,8 @@ def test_prices_show_two_decimals_and_yields_three():
     assert moves.format_last(1.11834, "price") == "1.12"
     assert moves.format_last(7614.0, "price") == "7614.00"
     assert moves.format_last(4.9286, "yield") == "4.929"
+
+
+def test_fred_3m_row_name_matches_its_yahoo_row():
+    names = {i["ticker"]: i["name"] for i in load_config()["instruments"]}
+    assert names["DTB3"] == "US 3M T-bill rate (FRED)"
