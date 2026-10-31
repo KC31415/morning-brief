@@ -102,3 +102,9 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **What broke:** `summarize.py` assumed `msg.content[0]` was a text block. The API can return a thinking block first, which has no `.text`, so a successful response raised `AttributeError` and the page got no bullets. The existing `except` caught it, so the run fell back to headlines, but the response was lost.
 - **How it was found:** the first refresh with a real API key returned HTTP 200 and then logged this error. Earlier tests used a mocked response containing only a text block, so they couldn't catch it.
 - **What changed:** the code now takes the first block where `type == "text"`. If there's none, it saves the error "summary failed: response had no text block" and keeps the prompt. New tests cover a thinking block followed by text, and a thinking block alone.
+
+## 16. Raising max_tokens to 2000
+
+- **Why:** thinking counts toward `max_tokens`. At 800, the model could use most or all of the limit on thinking, leaving no text block or JSON cut off mid-way, and either one loses the bullets.
+- **How it was found:** reviewing the limit while fixing the thinking-block bug. It hasn't been seen failing on a real response.
+- **What changed:** `max_tokens` went from 800 to 2000. That leaves much more room but isn't a guarantee, so the "no text block" and parse errors stay in place as the fallback.

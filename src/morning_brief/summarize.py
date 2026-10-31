@@ -63,7 +63,7 @@ def summarize(items: list[dict]) -> dict:
         # Save each piece as soon as we have it: failed runs are the ones worth reviewing
         result["prompt"] = build_prompt(items)
         msg = anthropic.Anthropic().messages.create(
-            model=MODEL, max_tokens=800, messages=[{"role": "user", "content": result["prompt"]}]
+            model=MODEL, max_tokens=2000, messages=[{"role": "user", "content": result["prompt"]}]
         )
         # The response can start with a thinking block, which has no .text
         raw = next((b.text for b in msg.content if b.type == "text"), None)
