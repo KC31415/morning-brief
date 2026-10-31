@@ -44,3 +44,9 @@ def test_every_instrument_has_a_known_session():
 def test_usd_cnh_and_cny_are_not_configured():
     tickers = {i["ticker"] for i in load_config()["instruments"]}
     assert not tickers & {"USDCNH=X", "CNH=X", "CNH=F", "USDCNY=X"}
+
+
+def test_news_feeds_are_market_focused():
+    urls = [f["url"] for f in load_config()["news_feeds"]]
+    assert not [u for u in urls if "mw_topstories" in u]  # mostly personal finance
+    assert len(urls) == len(set(urls))
