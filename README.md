@@ -77,8 +77,8 @@ pytest -q
 
 ## What I'd do differently / next
 
-YOUR OWN WORDS: what you learned building this version, where Copilot helped or was wrong, what you'd change.
+YOUR OWN WORDS: what you learned building this version, where Claude Code helped or was wrong, what you'd change.
 
 ## Built with
 
-Python, pandas, SQLite, Streamlit, GitHub Actions. I used GitHub Copilot throughout; see notes on where it helped and where I had to correct it: YOUR NOTES.
+Python, pandas, SQLite, Streamlit, GitHub Actions. I used Claude Code throughout; see notes on where it helped and where I had to correct it: YOUR NOTES.
