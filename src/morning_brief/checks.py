@@ -142,12 +142,16 @@ def check_sanity(prices: pd.DataFrame, instruments: list[dict], cfg: dict) -> li
     return out
 
 
+def pair_name(pair: dict) -> str:
+    return f"{pair['a']} vs {pair['b']}"
+
+
 def check_reconciliation(prices: pd.DataFrame, pairs: list[dict]) -> list[CheckResult]:
     out = []
     wide = prices.pivot_table(index="date", columns="ticker", values="close")
     for p in pairs:
         a, b = p["a"], p["b"]
-        name = f"{a} vs {b}"
+        name = pair_name(p)
         if a not in wide or b not in wide:
             out.append(CheckResult("reconciliation", name, Status.WARN, "one side missing, cannot compare"))
             continue
@@ -176,6 +180,17 @@ def run_all(prices: pd.DataFrame, config: dict, as_of) -> list[CheckResult]:
         + check_sanity(prices, insts, cfg)
         + check_reconciliation(prices, config.get("reconcile", []))
     )
+
+
+def worst_by_ticker(results: list[CheckResult], pairs: list[dict]) -> dict[str, Status]:
+    """Worst status per instrument. A reconciliation result counts against both sides of its pair."""
+    members = {pair_name(p): (p["a"], p["b"]) for p in pairs}
+    worst = {}
+    for r in results:
+        for t in members.get(r.ticker, (r.ticker,)):
+            if t and r.status > worst.get(t, Status.OK):
+                worst[t] = r.status
+    return worst
 
 
 def overall_status(results: list[CheckResult]) -> Status:

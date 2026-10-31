@@ -26,10 +26,7 @@ conn = storage.connect(DB_PATH)
 prices = storage.load_prices(conn)
 results = checks.run_all(prices, cfg, as_of=datetime.now(timezone.utc))
 overall = checks.overall_status(results)
-by_ticker = {}
-for r in results:
-    if r.ticker and r.status > by_ticker.get(r.ticker, checks.Status.OK):
-        by_ticker[r.ticker] = r.status
+by_ticker = checks.worst_by_ticker(results, cfg.get("reconcile", []))
 
 st.title("Morning Brief")
 last_fetch = prices["fetched_at"].max() if not prices.empty else "never"
