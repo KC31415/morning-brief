@@ -79,3 +79,24 @@ def test_short_history_flag_matches_banner(tmp_path, monkeypatch):
     assert at.warning and not at.error
     rows = pd.concat([d.value for d in at.dataframe])
     assert rows[rows["name"] == "US 10Y yield"].iloc[0]["flag"] == "⚠️"
+
+
+def test_table_shows_source_and_marks_single_source_unverified(tmp_path, monkeypatch):
+    db = tmp_path / "brief.db"
+    conn = sqlite3.connect(db)
+    conn.executescript(storage.SCHEMA)
+    end = checks.expected_session(datetime.now(timezone.utc))
+    for ticker, source in [("^TNX", "yfinance"), ("DGS10", "fred"), ("GC=F", "yfinance")]:
+        storage.upsert_prices(conn, yield_series(ticker, end, source=source))
+    conn.close()
+    monkeypatch.setattr(config, "DB_PATH", db)
+    monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
+
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+
+    rows = pd.concat([d.value for d in at.dataframe]).set_index("name")
+    assert rows.loc["US 10Y yield", "source"] == "yfinance"
+    assert rows.loc["US 10Y yield", "cross-check"] == "vs DGS10"
+    assert rows.loc["US 10Y yield (FRED)", "cross-check"] == "vs ^TNX"
+    assert rows.loc["Gold", "cross-check"] == "unverified"
+    assert any("single-source" in c.value for c in at.caption)

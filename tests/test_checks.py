@@ -207,3 +207,8 @@ def test_tolerances_pass_normal_gaps_and_fail_large_ones(pair):
     far = a.assign(ticker=pair["b"], close=a["close"] + pair["fail"] * 1.01)
     assert checks.check_reconciliation(pd.concat([a, near]), [pair])[0].status == Status.OK
     assert checks.check_reconciliation(pd.concat([a, far]), [pair])[0].status == Status.FAIL
+
+
+# ---------- cross-check coverage ----------
+def test_cross_checks_list_both_sides_and_omit_others():
+    assert checks.cross_checks([{"a": "^TNX", "b": "DGS10"}]) == {"^TNX": "DGS10", "DGS10": "^TNX"}

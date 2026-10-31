@@ -27,6 +27,7 @@ prices = storage.load_prices(conn)
 results = checks.run_all(prices, cfg, as_of=datetime.now(timezone.utc))
 overall = checks.overall_status(results)
 by_ticker = checks.worst_by_ticker(results, cfg.get("reconcile", []))
+partners = checks.cross_checks(cfg.get("reconcile", []))
 
 st.title("Morning Brief")
 last_fetch = prices["fetched_at"].max() if not prices.empty else "never"
@@ -53,10 +54,11 @@ FLAG = {checks.Status.OK: "", checks.Status.WARN: "⚠️", checks.Status.FAIL: 
 rows = []
 for inst in cfg["instruments"]:
     g = prices[prices["ticker"] == inst["ticker"]].sort_values("date")
+    cross_check = f"vs {partners[inst['ticker']]}" if inst["ticker"] in partners else "unverified"
     flag = FLAG[by_ticker.get(inst["ticker"], checks.Status.OK)]  # same results as the banner
     if len(g) < 2:
         rows.append({"group": inst["group"], "name": inst["name"], "last": None, "Change": "n/a",
-                     "from → to": None, "basis": None, "as of": None, "flag": flag})
+                     "from → to": None, "basis": None, "as of": None, "source": inst["source"], "cross-check": cross_check, "flag": flag})
         continue
     last, prev = g["close"].iloc[-1], g["close"].iloc[-2]
     latest = g.iloc[-1]
@@ -64,7 +66,8 @@ for inst in cfg["instruments"]:
     rows.append({"group": inst["group"], "name": inst["name"], "last": round(last, 4), "Change": change,
                  "from → to": moves.date_span(g["date"].iloc[-2], latest["date"]),
                  "basis": moves.change_basis(latest["date"], latest["fetched_at"], cfg["sessions"][inst["session"]]),
-                 "as of": g["date"].iloc[-1].strftime("%Y-%m-%d"), "flag": flag})
+                 "as of": g["date"].iloc[-1].strftime("%Y-%m-%d"),
+                 "source": inst["source"], "cross-check": cross_check, "flag": flag})
 table = pd.DataFrame(rows)
 
 cols = st.columns(2)
@@ -75,6 +78,9 @@ for i, (group, g) in enumerate(table.groupby("group", sort=False)):
 
 st.caption("Each change compares a ticker's last two rows, so periods differ by market. "
            "live = that session was still open when fetched; it is not a real-time price.")
+n_single = sum(i["ticker"] not in partners for i in cfg["instruments"])
+st.caption(f"{n_single} of {len(cfg['instruments'])} instruments are single-source (unverified): "
+           "passing checks means they look plausible, not that a second source agrees.")
 
 # ---- 3. News brief with sources ----
 st.subheader("Overnight news")

@@ -201,6 +201,11 @@ def run_all(prices: pd.DataFrame, config: dict, as_of) -> list[CheckResult]:
     )
 
 
+def cross_checks(pairs: list[dict]) -> dict[str, str]:
+    """Each ticker that has a second source, mapped to that source."""
+    return {p["a"]: p["b"] for p in pairs} | {p["b"]: p["a"] for p in pairs}
+
+
 def worst_by_ticker(results: list[CheckResult], pairs: list[dict]) -> dict[str, Status]:
     """Worst status per instrument. A reconciliation result counts against both sides of its pair."""
     members = {pair_name(p): (p["a"], p["b"]) for p in pairs}

@@ -84,4 +84,10 @@ Bugs found while building this, how each was found, and what changed.
 | `^IRX` vs `DTB3` | 0.010 | 0.039 | 0.060 | 0.08 | 0.24 |
 | `EURUSD=X` vs ECB | 0.0013 | 0.0040 | 0.0077 | 0.01 | 0.03 |
 
-These cover one calm-to-normal stretch of markets, so a stressed period could widen the gaps. The EUR/USD gap is mostly timing: the ECB fixes around 14:15 CET, while Yahoo's row closes later or is still live.
+These cover one stretch of about 120 sessions, so a more stressed period could widen the gaps. The EUR/USD gap is mostly timing: the ECB fixes around 14:15 CET, while Yahoo's row closes later or is still live.
+
+## 13. Source column and "unverified" marking
+
+- **What was missing:** a green banner implied every number had been verified, but most instruments have only one source. Checks on those can show a value looks plausible, not that it's right.
+- **How it was found:** listing which instruments the reconciliation pairs actually cover.
+- **What changed:** new "source" and "cross-check" columns. Cross-check names the second source, or says "unverified". A caption under the tables gives the single-source count.
