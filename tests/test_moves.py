@@ -4,10 +4,12 @@ from urllib.parse import urlparse
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from morning_brief import moves  # noqa: E402
+from morning_brief.checks import Status  # noqa: E402
 from morning_brief.config import load_config  # noqa: E402
 
 FRI = pd.Timestamp("2026-10-30")
@@ -72,3 +74,8 @@ def test_prices_show_two_decimals_and_yields_three():
 def test_fred_3m_row_name_matches_its_yahoo_row():
     names = {i["ticker"]: i["name"] for i in load_config()["instruments"]}
     assert names["DTB3"] == "US 3M T-bill rate (FRED)"
+
+
+@pytest.mark.parametrize("status,mark", [(Status.OK, "✓"), (Status.WARN, "⚠"), (Status.FAIL, "✗")])
+def test_cross_check_label_is_short_and_shows_the_result(status, mark):
+    assert moves.cross_check_label("ecb", status) == f"{mark} ECB"

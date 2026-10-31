@@ -28,6 +28,8 @@ results = checks.run_all(prices, cfg, as_of=datetime.now(timezone.utc))
 overall = checks.overall_status(results)
 by_ticker = checks.worst_by_ticker(results, cfg.get("reconcile", []))
 partners = checks.cross_checks(cfg.get("reconcile", []))
+pair_status = checks.cross_check_status(results, cfg.get("reconcile", []))
+sources = {i["ticker"]: i["source"] for i in cfg["instruments"]}
 
 st.title("Morning Brief")
 last_fetch = prices["fetched_at"].max() if not prices.empty else "never"
@@ -54,7 +56,8 @@ FLAG = {checks.Status.OK: "", checks.Status.WARN: "⚠️", checks.Status.FAIL: 
 rows = []
 for inst in cfg["instruments"]:
     g = prices[prices["ticker"] == inst["ticker"]].sort_values("date")
-    cross_check = f"vs {partners[inst['ticker']]}" if inst["ticker"] in partners else "unverified"
+    t = inst["ticker"]
+    cross_check = moves.cross_check_label(sources[partners[t]], pair_status[t]) if t in partners else "unverified"
     flag = FLAG[by_ticker.get(inst["ticker"], checks.Status.OK)]  # same results as the banner
     if len(g) < 2:
         rows.append({"group": inst["group"], "name": inst["name"], "last": None, "Change": "n/a",

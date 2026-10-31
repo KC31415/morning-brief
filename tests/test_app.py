@@ -40,6 +40,8 @@ def test_reconciliation_failure_flags_both_tickers(tmp_path, monkeypatch):
     flags = dict(zip(rows["name"], rows["flag"]))
     assert flags["US 10Y yield"] == "❌"
     assert flags["US 10Y yield (FRED)"] == "❌"
+    marks = dict(zip(rows["name"], rows["cross-check"]))
+    assert marks["US 10Y yield"] == "✗ FRED"  # a failed check must not show a tick
 
 
 def test_table_shows_change_span_and_basis(tmp_path, monkeypatch):
@@ -97,8 +99,8 @@ def test_table_shows_source_and_marks_single_source_unverified(tmp_path, monkeyp
 
     rows = pd.concat([d.value for d in at.dataframe]).set_index("name")
     assert rows.loc["US 10Y yield", "source"] == "yfinance"
-    assert rows.loc["US 10Y yield", "cross-check"] == "vs DGS10"
-    assert rows.loc["US 10Y yield (FRED)", "cross-check"] == "vs ^TNX"
+    assert rows.loc["US 10Y yield", "cross-check"] == "✓ FRED"
+    assert rows.loc["US 10Y yield (FRED)", "cross-check"] == "✓ Yahoo"
     assert rows.loc["Gold", "cross-check"] == "unverified"
     assert any("single-source" in c.value for c in at.caption)
 

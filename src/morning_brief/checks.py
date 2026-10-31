@@ -206,6 +206,16 @@ def cross_checks(pairs: list[dict]) -> dict[str, str]:
     return {p["a"]: p["b"] for p in pairs} | {p["b"]: p["a"] for p in pairs}
 
 
+def cross_check_status(results: list[CheckResult], pairs: list[dict]) -> dict[str, Status]:
+    """The reconciliation result for each ticker in a pair."""
+    by_pair = {r.ticker: r.status for r in results if r.check == "reconciliation"}
+    out = {}
+    for p in pairs:
+        status = by_pair.get(pair_name(p), Status.WARN)
+        out[p["a"]] = out[p["b"]] = status
+    return out
+
+
 def worst_by_ticker(results: list[CheckResult], pairs: list[dict]) -> dict[str, Status]:
     """Worst status per instrument. A reconciliation result counts against both sides of its pair."""
     members = {pair_name(p): (p["a"], p["b"]) for p in pairs}

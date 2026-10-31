@@ -212,3 +212,9 @@ def test_tolerances_pass_normal_gaps_and_fail_large_ones(pair):
 # ---------- cross-check coverage ----------
 def test_cross_checks_list_both_sides_and_omit_others():
     assert checks.cross_checks([{"a": "^TNX", "b": "DGS10"}]) == {"^TNX": "DGS10", "DGS10": "^TNX"}
+
+
+def test_cross_check_status_applies_to_both_sides():
+    pair = {"a": "A", "b": "B"}
+    r = [checks.CheckResult("reconciliation", "A vs B", Status.WARN, "")]
+    assert checks.cross_check_status(r, [pair]) == {"A": Status.WARN, "B": Status.WARN}

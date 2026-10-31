@@ -5,6 +5,11 @@ ticker can be a session still trading while another's are yesterday's closes.
 """
 import pandas as pd
 
+from morning_brief.checks import Status
+
+SOURCE_LABELS = {"yfinance": "Yahoo", "fred": "FRED", "ecb": "ECB"}
+CHECK_MARKS = {Status.OK: "✓", Status.WARN: "⚠", Status.FAIL: "✗"}
+
 
 def change_basis(row_date: pd.Timestamp, fetched_at: str, session: dict) -> str:
     """"live" if the row's session was still open when it was fetched, else the session's complete label."""
@@ -13,6 +18,10 @@ def change_basis(row_date: pd.Timestamp, fetched_at: str, session: dict) -> str:
     if fetched.tz is None:
         fetched = fetched.tz_localize("UTC")
     return "live" if fetched < close else session["complete"]
+
+
+def cross_check_label(partner_source: str, status: Status) -> str:
+    return f"{CHECK_MARKS[status]} {SOURCE_LABELS[partner_source]}"
 
 
 def format_last(value: float, kind: str) -> str:
