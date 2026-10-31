@@ -4,7 +4,7 @@
 
 **Live app:** YOUR_STREAMLIT_URL
 
-A pre-open market dashboard that puts overnight cross-asset moves and a short, sourced news brief on one page, and **tells you when its own data is wrong.**
+A pre-open market dashboard that puts the latest cross-asset moves and a short, sourced news brief on one page, and **tells you when its own data is wrong.**
 
 This is a public rebuild of a dashboard I built during my 2026 sales & trading internship, which 30+ traders and salespeople used every morning. That version had one real weakness: when a data source arrived late or incomplete, the page still loaded and looked normal. This version is built around fixing that. No code or data from the original is used here; everything runs on free public sources.
 
@@ -12,7 +12,7 @@ This is a public rebuild of a dashboard I built during my 2026 sales & trading i
 
 ## What it does
 
-- **Overnight moves** for ~25 instruments across equities, rates, FX and commodities (% change for prices, basis points for yields)
+- **Latest change** for ~25 instruments across equities, rates, FX and commodities (% change for prices, basis points for yields), each labeled with its from → to dates and basis: live, last session or prior US session
 - **Data status banner** at the top: green if every check passes, yellow for warnings, red if something failed, with details on exactly which series and why
 - **News brief:** 3–5 LLM-written bullets on what matters for the open, each linked to the headlines it came from
 - **Runs itself** every weekday before the open via GitHub Actions

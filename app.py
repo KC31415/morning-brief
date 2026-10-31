@@ -1,4 +1,4 @@
-"""Streamlit dashboard: data status banner, overnight moves, news brief.
+"""Streamlit dashboard: data status banner, latest changes, news brief.
 
     streamlit run app.py
 """
@@ -12,7 +12,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from morning_brief import checks, storage  # noqa: E402
+from morning_brief import checks, moves, storage  # noqa: E402
 from morning_brief.config import DB_PATH, SUMMARY_PATH, load_config  # noqa: E402
 
 st.set_page_config(page_title="Morning Brief", layout="wide")
@@ -48,18 +48,21 @@ if problems:
             hide_index=True, use_container_width=True,
         )
 
-# ---- 2. Overnight moves by asset class ----
+# ---- 2. Latest change by asset class ----
 FLAG = {checks.Status.OK: "", checks.Status.WARN: "⚠️", checks.Status.FAIL: "❌"}
 rows = []
 for inst in cfg["instruments"]:
     g = prices[prices["ticker"] == inst["ticker"]].sort_values("date")
     if len(g) < 2:
-        rows.append({"group": inst["group"], "name": inst["name"], "last": None, "change": "n/a",
-                     "as of": None, "flag": "❌"})
+        rows.append({"group": inst["group"], "name": inst["name"], "last": None, "Change": "n/a",
+                     "from → to": None, "basis": None, "as of": None, "flag": "❌"})
         continue
     last, prev = g["close"].iloc[-1], g["close"].iloc[-2]
+    latest = g.iloc[-1]
     change = f"{(last - prev) * 100:+.1f} bp" if inst["kind"] == "yield" else f"{(last / prev - 1) * 100:+.2f}%"
-    rows.append({"group": inst["group"], "name": inst["name"], "last": round(last, 4), "change": change,
+    rows.append({"group": inst["group"], "name": inst["name"], "last": round(last, 4), "Change": change,
+                 "from → to": moves.date_span(g["date"].iloc[-2], latest["date"]),
+                 "basis": moves.change_basis(latest["date"], latest["fetched_at"], cfg["sessions"][inst["session"]]),
                  "as of": g["date"].iloc[-1].strftime("%Y-%m-%d"), "flag": FLAG[by_ticker.get(inst["ticker"], checks.Status.OK)]})
 table = pd.DataFrame(rows)
 
@@ -68,6 +71,9 @@ for i, (group, g) in enumerate(table.groupby("group", sort=False)):
     with cols[i % 2]:
         st.subheader(group)
         st.dataframe(g.drop(columns="group"), hide_index=True, use_container_width=True)
+
+st.caption("Each change compares a ticker's last two rows, so periods differ by market. "
+           "live = that session was still open when fetched; it is not a real-time price.")
 
 # ---- 3. News brief with sources ----
 st.subheader("Overnight news")

@@ -1,38 +1,50 @@
 # Instruments shown on the dashboard.
 # source: yfinance (default) or fred
 # kind: price (show % change) or yield (show change in basis points)
+# session: key into `sessions` below, used to label what the change measures
 
 instruments:
   # Equities
-  - {ticker: ES=F,     name: S&P 500 futures,      group: Equities,    kind: price}
-  - {ticker: NQ=F,     name: Nasdaq 100 futures,   group: Equities,    kind: price}
-  - {ticker: RTY=F,    name: Russell 2000 futures, group: Equities,    kind: price}
-  - {ticker: ^STOXX50E, name: Euro Stoxx 50,       group: Equities,    kind: price}
-  - {ticker: ^N225,    name: Nikkei 225,           group: Equities,    kind: price}
-  - {ticker: ^HSI,     name: Hang Seng,            group: Equities,    kind: price}
-  - {ticker: ^VIX,     name: VIX,                  group: Equities,    kind: price}
+  - {ticker: ES=F,     name: S&P 500 futures,      group: Equities,    kind: price, session: futures_fx}
+  - {ticker: NQ=F,     name: Nasdaq 100 futures,   group: Equities,    kind: price, session: futures_fx}
+  - {ticker: RTY=F,    name: Russell 2000 futures, group: Equities,    kind: price, session: futures_fx}
+  - {ticker: ^STOXX50E, name: Euro Stoxx 50,       group: Equities,    kind: price, session: europe}
+  - {ticker: ^N225,    name: Nikkei 225,           group: Equities,    kind: price, session: tokyo}
+  - {ticker: ^HSI,     name: Hang Seng,            group: Equities,    kind: price, session: hong_kong}
+  - {ticker: ^VIX,     name: VIX,                  group: Equities,    kind: price, session: us_vix}
 
   # Rates (yields in percent)
-  - {ticker: ^IRX,     name: US 3M yield,          group: Rates,       kind: yield}
-  - {ticker: ^FVX,     name: US 5Y yield,          group: Rates,       kind: yield}
-  - {ticker: ^TNX,     name: US 10Y yield,         group: Rates,       kind: yield}
-  - {ticker: DGS10,    name: US 10Y yield (FRED),  group: Rates,       kind: yield, source: fred}
+  - {ticker: ^IRX,     name: US 3M yield,          group: Rates,       kind: yield, session: us_bonds}
+  - {ticker: ^FVX,     name: US 5Y yield,          group: Rates,       kind: yield, session: us_bonds}
+  - {ticker: ^TNX,     name: US 10Y yield,         group: Rates,       kind: yield, session: us_bonds}
+  - {ticker: DGS10,    name: US 10Y yield (FRED),  group: Rates,       kind: yield, source: fred, session: us_bonds}
 
   # FX
-  - {ticker: DX-Y.NYB, name: Dollar index,         group: FX,          kind: price}
-  - {ticker: EURUSD=X, name: EUR/USD,              group: FX,          kind: price}
-  - {ticker: USDJPY=X, name: USD/JPY,              group: FX,          kind: price}
-  - {ticker: GBPUSD=X, name: GBP/USD,              group: FX,          kind: price}
-  - {ticker: USDCNH=X, name: USD/CNH,              group: FX,          kind: price}
+  - {ticker: DX-Y.NYB, name: Dollar index,         group: FX,          kind: price, session: futures_fx}
+  - {ticker: EURUSD=X, name: EUR/USD,              group: FX,          kind: price, session: futures_fx}
+  - {ticker: USDJPY=X, name: USD/JPY,              group: FX,          kind: price, session: futures_fx}
+  - {ticker: GBPUSD=X, name: GBP/USD,              group: FX,          kind: price, session: futures_fx}
+  - {ticker: USDCNH=X, name: USD/CNH,              group: FX,          kind: price, session: futures_fx}
 
   # Commodities
-  - {ticker: CL=F,     name: WTI crude,            group: Commodities, kind: price}
-  - {ticker: NG=F,     name: Natural gas,          group: Commodities, kind: price}
-  - {ticker: GC=F,     name: Gold,                 group: Commodities, kind: price}
-  - {ticker: HG=F,     name: Copper,               group: Commodities, kind: price}
-  - {ticker: ZC=F,     name: Corn,                 group: Commodities, kind: price}
-  - {ticker: ZW=F,     name: Wheat,                group: Commodities, kind: price}
-  - {ticker: ZS=F,     name: Soybeans,             group: Commodities, kind: price}
+  - {ticker: CL=F,     name: WTI crude,            group: Commodities, kind: price, session: futures_fx}
+  - {ticker: NG=F,     name: Natural gas,          group: Commodities, kind: price, session: futures_fx}
+  - {ticker: GC=F,     name: Gold,                 group: Commodities, kind: price, session: futures_fx}
+  - {ticker: HG=F,     name: Copper,               group: Commodities, kind: price, session: futures_fx}
+  - {ticker: ZC=F,     name: Corn,                 group: Commodities, kind: price, session: cbot}
+  - {ticker: ZW=F,     name: Wheat,                group: Commodities, kind: price, session: cbot}
+  - {ticker: ZS=F,     name: Soybeans,             group: Commodities, kind: price, session: cbot}
+
+# When each market's daily row is complete. A row fetched before this time on its
+# own date is labeled "live"; afterwards it gets the `complete` label.
+sessions:
+  futures_fx: {tz: America/New_York, close: "17:00", complete: last session}
+  cbot:       {tz: America/Chicago,  close: "13:20", complete: last session}
+  europe:     {tz: Europe/Berlin,    close: "17:30", complete: last session}
+  tokyo:      {tz: Asia/Tokyo,       close: "15:30", complete: last session}
+  hong_kong:  {tz: Asia/Hong_Kong,   close: "16:00", complete: last session}
+  us_vix:     {tz: America/New_York, close: "16:15", complete: prior US session}
+  us_bonds:   {tz: America/New_York, close: "15:30", complete: prior US session}
 
 # Pairs of series that measure the same thing, used to cross-check sources.
 # tolerance is in the series' units (percentage points for yields: 0.05 = 5bp).
