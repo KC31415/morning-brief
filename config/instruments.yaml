@@ -14,7 +14,7 @@ instruments:
   - {ticker: ^VIX,     name: VIX,                  group: Equities,    kind: price, session: us_vix}
 
   # Rates (yields in percent)
-  - {ticker: ^IRX,     name: US 3M yield,          group: Rates,       kind: yield, session: us_bonds}
+  - {ticker: ^IRX,     name: US 3M T-bill rate,    group: Rates,       kind: yield, session: us_bonds}
   - {ticker: ^FVX,     name: US 5Y yield,          group: Rates,       kind: yield, session: us_bonds}
   - {ticker: ^TNX,     name: US 10Y yield,         group: Rates,       kind: yield, session: us_bonds}
   - {ticker: DGS10,    name: US 10Y yield (FRED),  group: Rates,       kind: yield, source: fred, session: us_bonds}
