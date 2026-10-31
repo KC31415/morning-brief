@@ -1,0 +1,53 @@
+# Instruments shown on the dashboard.
+# source: yfinance (default) or fred
+# kind: price (show % change) or yield (show change in basis points)
+
+instruments:
+  # Equities
+  - {ticker: ES=F,     name: S&P 500 futures,      group: Equities,    kind: price}
+  - {ticker: NQ=F,     name: Nasdaq 100 futures,   group: Equities,    kind: price}
+  - {ticker: RTY=F,    name: Russell 2000 futures, group: Equities,    kind: price}
+  - {ticker: ^STOXX50E, name: Euro Stoxx 50,       group: Equities,    kind: price}
+  - {ticker: ^N225,    name: Nikkei 225,           group: Equities,    kind: price}
+  - {ticker: ^HSI,     name: Hang Seng,            group: Equities,    kind: price}
+  - {ticker: ^VIX,     name: VIX,                  group: Equities,    kind: price}
+
+  # Rates (yields in percent)
+  - {ticker: ^IRX,     name: US 3M yield,          group: Rates,       kind: yield}
+  - {ticker: ^FVX,     name: US 5Y yield,          group: Rates,       kind: yield}
+  - {ticker: ^TNX,     name: US 10Y yield,         group: Rates,       kind: yield}
+  - {ticker: DGS10,    name: US 10Y yield (FRED),  group: Rates,       kind: yield, source: fred}
+
+  # FX
+  - {ticker: DX-Y.NYB, name: Dollar index,         group: FX,          kind: price}
+  - {ticker: EURUSD=X, name: EUR/USD,              group: FX,          kind: price}
+  - {ticker: USDJPY=X, name: USD/JPY,              group: FX,          kind: price}
+  - {ticker: GBPUSD=X, name: GBP/USD,              group: FX,          kind: price}
+  - {ticker: USDCNH=X, name: USD/CNH,              group: FX,          kind: price}
+
+  # Commodities
+  - {ticker: CL=F,     name: WTI crude,            group: Commodities, kind: price}
+  - {ticker: NG=F,     name: Natural gas,          group: Commodities, kind: price}
+  - {ticker: GC=F,     name: Gold,                 group: Commodities, kind: price}
+  - {ticker: HG=F,     name: Copper,               group: Commodities, kind: price}
+  - {ticker: ZC=F,     name: Corn,                 group: Commodities, kind: price}
+  - {ticker: ZW=F,     name: Wheat,                group: Commodities, kind: price}
+  - {ticker: ZS=F,     name: Soybeans,             group: Commodities, kind: price}
+
+# Pairs of series that measure the same thing, used to cross-check sources.
+# tolerance is in the series' units (percentage points for yields: 0.05 = 5bp).
+reconcile:
+  - {a: ^TNX, b: DGS10, warn: 0.05, fail: 0.15}
+
+news_feeds:
+  - {name: Federal Reserve, url: "https://www.federalreserve.gov/feeds/press_all.xml"}
+  - {name: CNBC Markets,    url: "https://www.cnbc.com/id/20910258/device/rss/rss.html"}
+  - {name: MarketWatch,     url: "https://feeds.content.dowjones.io/public/rss/mw_topstories"}
+
+checks:
+  lookback_days: 60          # history used for volatility in the sanity check
+  stale_warn_bdays: 1        # business days behind expected before WARN
+  stale_fail_bdays: 3        # ... before FAIL
+  gap_warn: 3                # missing business days in lookback before WARN
+  move_warn_z: 4.0           # daily move this many std devs from normal -> WARN
+  move_fail_z: 10.0          # ... this many -> FAIL (almost certainly bad data)

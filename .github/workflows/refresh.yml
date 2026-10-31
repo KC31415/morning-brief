@@ -1,0 +1,40 @@
+name: pre-open refresh
+
+on:
+  schedule:
+    # 11:00 UTC on weekdays = 7:00am New York in summer, 6:00am in winter
+    - cron: "0 11 * * 1-5"
+  workflow_dispatch: {}   # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+
+      - name: Fetch, check, summarize
+        id: run
+        continue-on-error: true   # a FAIL check marks the run red but data is still saved
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python scripts/refresh.py
+
+      - name: Commit updated data
+        if: always()
+        run: |
+          git config user.name "morning-brief-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/brief.db data/summary.json
+          git commit -m "Data refresh $(date -u +%Y-%m-%dT%H:%MZ)" || echo "nothing to commit"
+          git push
+
+      - name: Fail the job if any data check failed
+        if: steps.run.outcome == 'failure'
+        run: exit 1
