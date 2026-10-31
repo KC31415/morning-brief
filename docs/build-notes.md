@@ -68,3 +68,20 @@ Bugs found while building this, how each was found, and what changed.
 - **What broke:** `app.py` hard-coded ❌ for any ticker with fewer than two rows, while the banner used the check results. USD/CNH showed ❌ under a yellow banner. Completeness also passed it with a single row.
 - **How it was found:** reading the rendered table from the first live run next to its banner.
 - **What changed:** every row's flag now comes from the same check results as the banner. Completeness WARNs below `min_rows` (22), the history the sanity check needs for 21 changes. A ticker with no data at all still FAILs.
+
+## 12. More reconciliation pairs
+
+- **What was missing:** only the 10Y yield had a second source, so a wrong value anywhere else could look fine.
+- **How it was found:** reviewing how credible free data is. Bloomberg can't feed a public cloud app, so official sources became the cross-check.
+- **What changed:** added `^FVX` vs `DGS5`, `^IRX` vs `DTB3` and `EURUSD=X` vs the ECB reference rate, plus a new `fetch_ecb`. The new series also appear as table rows, like `DGS10` already did.
+- **Choosing the 3M series:** `DGS3MO` differed from `^IRX` by about 16bp on average, enough to FAIL almost every day. `DTB3` differed by about 1bp. Going by those numbers and how the series are defined, the gap is quoting basis: `DTB3` and `^IRX` are on a discount basis, while `DGS3MO` is a bond-equivalent yield.
+- **Tolerances:** measured over about 120 sessions on Oct 31, 2026. Warn sits just above the largest gap seen, and fail is about 3x warn.
+
+| Pair | Median gap | 95th pct | Max | Warn | Fail |
+|---|---|---|---|---|---|
+| `^TNX` vs `DGS10` | 0.006 | 0.020 | 0.048 | 0.05 | 0.15 |
+| `^FVX` vs `DGS5` | 0.007 | 0.020 | 0.041 | 0.05 | 0.15 |
+| `^IRX` vs `DTB3` | 0.010 | 0.039 | 0.060 | 0.08 | 0.24 |
+| `EURUSD=X` vs ECB | 0.0013 | 0.0040 | 0.0077 | 0.01 | 0.03 |
+
+These cover one calm-to-normal stretch of markets, so a stressed period could widen the gaps. The EUR/USD gap is mostly timing: the ECB fixes around 14:15 CET, while Yahoo's row closes later or is still live.

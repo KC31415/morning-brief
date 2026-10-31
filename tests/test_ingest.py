@@ -61,3 +61,25 @@ def test_weekend_rows_are_dropped_and_logged(monkeypatch, caplog):
     df = ingest.fetch_all([inst("GBPUSD=X")])
     assert list(pd.to_datetime(df["date"]).dt.day_of_week) == [3, 4]
     assert "GBPUSD=X" in caplog.text and "weekend" in caplog.text
+
+
+ECB_CSV = """KEY,TIME_PERIOD,OBS_VALUE
+EXR.D.USD.EUR.SP00.A,2026-10-29,1.1130
+EXR.D.USD.EUR.SP00.A,2026-10-30,1.1172
+"""
+
+
+def test_ecb_rates_are_parsed_into_the_common_table(monkeypatch):
+    response = types.SimpleNamespace(text=ECB_CSV, raise_for_status=lambda: None)
+    monkeypatch.setattr(ingest.requests, "get", lambda url, timeout: response)
+    df = ingest.fetch_all([{"ticker": "ECB_EURUSD", "source": "ecb", "series": "D.USD.EUR.SP00.A"}])
+    assert list(df["ticker"].unique()) == ["ECB_EURUSD"] and list(df["source"].unique()) == ["ecb"]
+    assert list(df["close"]) == [1.1130, 1.1172]
+
+
+def test_ecb_failure_does_not_stop_the_run(monkeypatch):
+    def boom(url, timeout):
+        raise OSError("down")
+
+    monkeypatch.setattr(ingest.requests, "get", boom)
+    assert ingest.fetch_all([{"ticker": "ECB_EURUSD", "source": "ecb", "series": "x"}]).empty

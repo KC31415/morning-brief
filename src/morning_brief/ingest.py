@@ -1,4 +1,4 @@
-"""Pull daily closes from yfinance and FRED into one long table.
+"""Pull daily closes from yfinance, FRED and the ECB into one long table.
 
 Output columns: date, ticker, close, source, fetched_at
 One bad ticker never stops the run: failures are logged and the ticker is
@@ -14,6 +14,7 @@ import requests
 log = logging.getLogger(__name__)
 
 FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}&cosd={start}"
+ECB_CSV = "https://data-api.ecb.europa.eu/service/data/EXR/{series}?format=csvdata&startPeriod={start}"
 
 
 def fetch_yfinance(tickers: list[str], days: int) -> pd.DataFrame:
@@ -63,10 +64,32 @@ def fetch_fred(series_ids: list[str], days: int) -> pd.DataFrame:
     return pd.concat(frames, ignore_index=True) if frames else _empty()
 
 
+def fetch_ecb(series_by_ticker: dict[str, str], days: int) -> pd.DataFrame:
+    start = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+    frames = []
+    for t, s in series_by_ticker.items():
+        try:
+            resp = requests.get(ECB_CSV.format(series=s, start=start), timeout=30)
+            resp.raise_for_status()
+            df = pd.read_csv(io.StringIO(resp.text))[["TIME_PERIOD", "OBS_VALUE"]]
+            df.columns = ["date", "close"]
+            df["date"] = pd.to_datetime(df["date"])
+            df["close"] = pd.to_numeric(df["close"], errors="coerce")
+            df = df.dropna(subset=["close"])
+            df["ticker"] = t
+            df["source"] = "ecb"
+            frames.append(df)
+        except Exception:
+            log.exception("ECB failed for %s", t)
+    return pd.concat(frames, ignore_index=True) if frames else _empty()
+
+
 def fetch_all(instruments: list[dict], days: int = 120) -> pd.DataFrame:
     yf_tickers = [i["ticker"] for i in instruments if i["source"] == "yfinance"]
     fred_ids = [i["ticker"] for i in instruments if i["source"] == "fred"]
-    df = pd.concat([fetch_yfinance(yf_tickers, days), fetch_fred(fred_ids, days)], ignore_index=True)
+    ecb_series = {i["ticker"]: i["series"] for i in instruments if i["source"] == "ecb"}
+    df = pd.concat([fetch_yfinance(yf_tickers, days), fetch_fred(fred_ids, days), fetch_ecb(ecb_series, days)],
+                   ignore_index=True)
     df = _drop_weekends(df)
     df["fetched_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     log.info("fetched %d rows for %d tickers", len(df), df["ticker"].nunique())

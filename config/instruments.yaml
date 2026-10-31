@@ -1,5 +1,5 @@
 # Instruments shown on the dashboard.
-# source: yfinance (default) or fred
+# source: yfinance (default), fred or ecb (ecb also needs `series`)
 # kind: price (show % change) or yield (show change in basis points)
 # session: key into `sessions` below, used to label what the change measures
 
@@ -18,10 +18,14 @@ instruments:
   - {ticker: ^FVX,     name: US 5Y yield,          group: Rates,       kind: yield, session: us_bonds}
   - {ticker: ^TNX,     name: US 10Y yield,         group: Rates,       kind: yield, session: us_bonds}
   - {ticker: DGS10,    name: US 10Y yield (FRED),  group: Rates,       kind: yield, source: fred, session: us_bonds}
+  - {ticker: DGS5,     name: US 5Y yield (FRED),   group: Rates,       kind: yield, source: fred, session: us_bonds}
+  # DTB3, not DGS3MO: ^IRX and DTB3 are both quoted on a discount basis
+  - {ticker: DTB3,     name: US 3M bill (FRED),    group: Rates,       kind: yield, source: fred, session: us_bonds}
 
   # FX
   - {ticker: DX-Y.NYB, name: Dollar index,         group: FX,          kind: price, session: futures_fx}
   - {ticker: EURUSD=X, name: EUR/USD,              group: FX,          kind: price, session: futures_fx}
+  - {ticker: ECB_EURUSD, name: EUR/USD (ECB),      group: FX,          kind: price, source: ecb, series: D.USD.EUR.SP00.A, session: ecb}
   - {ticker: USDJPY=X, name: USD/JPY,              group: FX,          kind: price, session: futures_fx}
   - {ticker: GBPUSD=X, name: GBP/USD,              group: FX,          kind: price, session: futures_fx}
 
@@ -40,6 +44,7 @@ sessions:
   futures_fx: {tz: America/New_York, close: "17:00", complete: last session}
   cbot:       {tz: America/Chicago,  close: "13:20", complete: last session}
   europe:     {tz: Europe/Berlin,    close: "17:30", complete: last session}
+  ecb:        {tz: Europe/Berlin,    close: "16:00", complete: last session}
   tokyo:      {tz: Asia/Tokyo,       close: "15:30", complete: last session}
   hong_kong:  {tz: Asia/Hong_Kong,   close: "16:00", complete: last session}
   us_vix:     {tz: America/New_York, close: "16:15", complete: prior US session}
@@ -47,8 +52,13 @@ sessions:
 
 # Pairs of series that measure the same thing, used to cross-check sources.
 # tolerance is in the series' units (percentage points for yields: 0.05 = 5bp).
+# The sources snapshot at different times, so warn sits just above the largest gap
+# seen over about 120 sessions (in brackets), and fail at about 3x warn.
 reconcile:
-  - {a: ^TNX, b: DGS10, warn: 0.05, fail: 0.15}
+  - {a: ^TNX,     b: DGS10,      warn: 0.05, fail: 0.15}   # (0.048)
+  - {a: ^FVX,     b: DGS5,       warn: 0.05, fail: 0.15}   # (0.041)
+  - {a: ^IRX,     b: DTB3,       warn: 0.08, fail: 0.24}   # (0.060)
+  - {a: EURUSD=X, b: ECB_EURUSD, warn: 0.01, fail: 0.03}   # (0.0077) ECB fixes near 14:15 CET
 
 news_feeds:
   - {name: Federal Reserve, url: "https://www.federalreserve.gov/feeds/press_all.xml"}

@@ -28,7 +28,7 @@ Every refresh runs these before anything is displayed:
 | Gaps | Holes in recent history | 5 missing days in the last 60 → WARN |
 | Sanity | Moves too large to be real | A 1%-vol asset "moves" 50% → FAIL, almost certainly bad data |
 | Frozen feed | A price that hasn't changed in two weeks | Last 10 daily changes all zero → FAIL |
-| Reconciliation | Two sources disagreeing | 10Y yield from Yahoo vs FRED differs by >15bp → FAIL |
+| Reconciliation | Two sources disagreeing | 5Y and 10Y yields vs FRED, 3M bill vs FRED, EUR/USD vs the ECB. 10Y differs by ≥15bp → FAIL |
 
 Results are stored in a `check_runs` table, so I can query how often each feed has problems:
 
@@ -49,7 +49,7 @@ GROUP BY 1, 2 ORDER BY failures DESC;
 
 ```
 scripts/refresh.py            runs the pipeline once
-  ingest.py                   yfinance + FRED -> one table
+  ingest.py                   yfinance + FRED + ECB -> one table
   storage.py                  SQLite (prices, check_runs)
   checks.py                   data quality checks
   news.py / summarize.py      RSS headlines -> cited LLM bullets

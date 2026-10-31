@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from morning_brief import checks  # noqa: E402
 from morning_brief.checks import Status  # noqa: E402
+from morning_brief.config import load_config  # noqa: E402
 
 CFG = {"lookback_days": 60, "stale_warn_bdays": 1, "stale_fail_bdays": 3,
        "gap_warn": 3, "move_warn_z": 4.0, "move_fail_z": 10.0, "frozen_changes": 10, "min_rows": 22}
@@ -183,3 +184,26 @@ def test_ticker_no_longer_configured_is_not_checked():
 def test_completeness_warns_below_minimum_rows(n, expected):
     r = checks.check_completeness(make_series("A", n=n), [inst("A")], CFG)
     assert r[0].status == expected
+
+
+# ---------- configured reconciliation pairs ----------
+# Largest absolute gap seen over about 120 sessions when the tolerances were set.
+OBSERVED_MAX = {"^TNX": 0.048, "^FVX": 0.041, "^IRX": 0.060, "EURUSD=X": 0.0077}
+
+
+def configured_pairs():
+    return load_config()["reconcile"]
+
+
+def test_every_expected_pair_is_configured():
+    assert {(p["a"], p["b"]) for p in configured_pairs()} == {
+        ("^TNX", "DGS10"), ("^FVX", "DGS5"), ("^IRX", "DTB3"), ("EURUSD=X", "ECB_EURUSD")}
+
+
+@pytest.mark.parametrize("pair", configured_pairs(), ids=lambda p: p["a"])
+def test_tolerances_pass_normal_gaps_and_fail_large_ones(pair):
+    a = make_series(pair["a"], start_price=4.0, vol=0.001)
+    near = a.assign(ticker=pair["b"], close=a["close"] + OBSERVED_MAX[pair["a"]])
+    far = a.assign(ticker=pair["b"], close=a["close"] + pair["fail"] * 1.01)
+    assert checks.check_reconciliation(pd.concat([a, near]), [pair])[0].status == Status.OK
+    assert checks.check_reconciliation(pd.concat([a, far]), [pair])[0].status == Status.FAIL

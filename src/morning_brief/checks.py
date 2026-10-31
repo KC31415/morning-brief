@@ -32,7 +32,7 @@ class CheckResult:
 
 
 # FRED publishes with about a one-day lag, so it is allowed to be one session behind.
-SOURCE_LAG_BDAYS = {"yfinance": 0, "fred": 1}
+SOURCE_LAG_BDAYS = {"yfinance": 0, "fred": 1, "ecb": 0}
 
 
 def expected_session(as_of: pd.Timestamp) -> pd.Timestamp:
