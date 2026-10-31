@@ -39,3 +39,8 @@ def test_date_span_shows_both_ends():
 def test_every_instrument_has_a_known_session():
     cfg = load_config()
     assert all(i["session"] in cfg["sessions"] for i in cfg["instruments"])
+
+
+def test_usd_cnh_and_cny_are_not_configured():
+    tickers = {i["ticker"] for i in load_config()["instruments"]}
+    assert not tickers & {"USDCNH=X", "CNH=X", "CNH=F", "USDCNY=X"}

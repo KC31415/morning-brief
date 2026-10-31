@@ -50,3 +50,9 @@ Bugs found while building this, how each was found, and what changed.
 - **What broke:** the README called these "overnight moves", and each row compares a ticker's last two rows. At the pre-open that mixes moves still in progress, finished Asian sessions and yesterday's US yields, and the table gave no way to tell them apart. The table's column was already called `change`, so the misleading word was in the README and a code comment.
 - **How it was found:** the first live run, plus replaying which hourly bars existed before 11:00 UTC on a Friday.
 - **What changed:** the column is now "Change", with new "from → to" and "basis" columns. `moves.change_basis` compares each row's `fetched_at` with its market's close, set per session in the config, so the label follows the data. Futures fetched on a Saturday say "last session", not "live". This labels the mix but doesn't remove it: `live` means the session was open when fetched, not that the price is current.
+
+## 9. USD/CNH removed
+
+- **What broke:** Yahoo returned only one row for `USDCNH=X`, and `CNH=X` was the same. `CNH=F` had 33 rows, and `USDCNY=X` is onshore yuan, which is a different rate.
+- **How it was found:** the first live run warned on gaps and sanity for this ticker, and I tried the alternatives directly.
+- **What changed:** removed from the config with no replacement. Removing it exposed a second bug: `check_gaps` looped over every ticker in the database, so old CNH rows would have kept warning. `run_all` now only judges configured tickers.

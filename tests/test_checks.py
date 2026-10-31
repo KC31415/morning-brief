@@ -168,3 +168,11 @@ def test_mostly_unchanged_series_falls_back_to_std():
     df["close"] = 4.0 + np.cumsum(steps)
     r = checks.check_sanity(df, [inst("Y", kind="yield")], CFG)[0]
     assert r.status == Status.OK
+
+
+# ---------- instruments removed from the config ----------
+def test_ticker_no_longer_configured_is_not_checked():
+    # Rows stay in the database after an instrument is removed; they must not raise warnings.
+    prices = pd.concat([make_series("A"), make_series("OLD", n=1)])
+    config = {"instruments": [inst("A")], "checks": CFG}
+    assert {r.ticker for r in checks.run_all(prices, config, AS_OF)} == {"A"}

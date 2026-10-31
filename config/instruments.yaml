@@ -24,7 +24,6 @@ instruments:
   - {ticker: EURUSD=X, name: EUR/USD,              group: FX,          kind: price, session: futures_fx}
   - {ticker: USDJPY=X, name: USD/JPY,              group: FX,          kind: price, session: futures_fx}
   - {ticker: GBPUSD=X, name: GBP/USD,              group: FX,          kind: price, session: futures_fx}
-  - {ticker: USDCNH=X, name: USD/CNH,              group: FX,          kind: price, session: futures_fx}
 
   # Commodities
   - {ticker: CL=F,     name: WTI crude,            group: Commodities, kind: price, session: futures_fx}

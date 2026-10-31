@@ -188,6 +188,8 @@ def check_reconciliation(prices: pd.DataFrame, pairs: list[dict]) -> list[CheckR
 
 def run_all(prices: pd.DataFrame, config: dict, as_of) -> list[CheckResult]:
     insts, cfg = config["instruments"], config["checks"]
+    # Rows outlive an instrument in the database; only judge what is configured now
+    prices = prices[prices["ticker"].isin([i["ticker"] for i in insts])]
     return (
         check_completeness(prices, insts)
         + check_freshness(prices, insts, as_of, cfg)
