@@ -137,3 +137,12 @@ def test_dollar_amounts_do_not_render_as_math(tmp_path, monkeypatch):
     text = [m.value for m in at.markdown]
     assert any(r"From \$10bn to about \$20bn." in t for t in text)
     assert any(r"Deal worth \$5bn or \$6bn" in t for t in text)
+
+
+def test_headlines_show_publication_date_next_to_source(tmp_path, monkeypatch):
+    dated = {"id": 1, "source": "EIA", "title": "Dated", "link": "https://x", "published": "2026-10-30T14:00:00+00:00"}
+    undated = {"id": 2, "source": "ECB", "title": "Undated", "link": "https://y", "published": None}
+    at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": None, "headlines": [dated, undated]})
+    text = [m.value for m in at.markdown]
+    assert any("**EIA** (2026-10-30):" in t for t in text)
+    assert any("**ECB**:" in t for t in text)

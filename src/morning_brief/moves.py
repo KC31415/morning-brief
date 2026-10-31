@@ -24,6 +24,10 @@ def cross_check_label(partner_source: str, status: Status) -> str:
     return f"{CHECK_MARKS[status]} {SOURCE_LABELS[partner_source]}"
 
 
+def published_date(published: str | None) -> str | None:
+    return f"{pd.Timestamp(published):%Y-%m-%d}" if published else None
+
+
 def format_last(value: float, kind: str, group: str) -> str:
     decimals = 3 if kind == "yield" else 4 if group == "FX" else 2
     return f"{value:.{decimals}f}"

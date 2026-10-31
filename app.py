@@ -101,6 +101,7 @@ if SUMMARY_PATH.exists():
         st.info("No market-moving headlines overnight")
     with st.expander(f"All headlines ({len(links)})"):
         for h in links.values():
-            st.markdown(f"[{h['id']}] **{h['source']}**: [{moves.escape_dollars(h['title'])}]({h['link']})")
+            date = moves.published_date(h.get("published"))
+            st.markdown(f"[{h['id']}] **{h['source']}**{f' ({date})' if date else ''}: [{moves.escape_dollars(h['title'])}]({h['link']})")
 else:
     st.info("No news summary yet.")

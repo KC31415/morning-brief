@@ -79,3 +79,8 @@ def test_fred_3m_row_name_matches_its_yahoo_row():
 @pytest.mark.parametrize("status,mark", [(Status.OK, "✓"), (Status.WARN, "⚠"), (Status.FAIL, "✗")])
 def test_cross_check_label_is_short_and_shows_the_result(status, mark):
     assert moves.cross_check_label("ecb", status) == f"{mark} ECB"
+
+
+def test_published_date_is_shown_when_known():
+    assert moves.published_date("2026-10-30T14:00:00+00:00") == "2026-10-30"
+    assert moves.published_date(None) is None
