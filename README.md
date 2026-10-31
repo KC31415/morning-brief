@@ -72,6 +72,8 @@ pytest -q
 ## Known limitations
 
 - Freshness and gap checks use weekday calendars, not exchange holiday calendars, so a holiday (especially for Nikkei and Hang Seng) shows as a warning. I chose a false WARN over a missed real problem; exchange calendars are the next fix.
+- Nikkei holidays currently trip the gaps check: 5 missing days in the 60-day window, all matching Japanese market holidays, give a WARN that lingers for about 12 weeks. Left as is until exchange calendars are added.
+- yfinance triggers a pandas deprecation warning (`sort_index(inplace=True)`) on every ticker. It clutters the log but breaks nothing today; it may fail once pandas removes that keyword.
 - Free data sources have delays and occasional bad prints. That is part of why the checks exist, but this is not production market data.
 - Sanity thresholds (4 and 10 standard deviations) are judgment calls, not tuned.
 - I check LLM summaries by reading them against the cited headlines, not with an automated accuracy test.

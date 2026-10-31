@@ -91,3 +91,8 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **What was missing:** a green banner implied every number had been verified, but most instruments have only one source. Checks on those can show a value looks plausible, not that it's right.
 - **How it was found:** listing which instruments the reconciliation pairs actually cover.
 - **What changed:** new "source" and "cross-check" columns. Cross-check names the second source, or says "unverified". A caption under the tables gives the single-source count.
+
+## 14. Known limitations documented, not fixed
+
+- **What:** the Nikkei holiday gaps and yfinance's pandas deprecation warning, both seen on the first live run.
+- **What changed:** added both to the README's known limitations. No code change, by choice.
