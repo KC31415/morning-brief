@@ -1,9 +1,25 @@
 {
   "model": "claude-haiku-5-5",
-  "bullets": [],
-  "prompt": null,
-  "raw_response": null,
-  "error": "no headlines",
-  "run_at": "2026-11-02T00:53:34+00:00",
-  "headlines": []
+  "bullets": [
+    {
+      "bullet": "The ECB published a speech by Boris Vuj\u010di\u0107 titled \"Integrated, open and resilient: Europe's strengths in a fragmenting world.\" The headline does not indicate any policy decision or market impact.",
+      "sources": [
+        1
+      ]
+    }
+  ],
+  "prompt": "You are preparing a pre-open market brief for a trading desk.\nUsing ONLY the headlines below, write 0 to 5 bullets on what matters for today's open.\nDo not add facts, numbers or context that are not in the headlines.\nEach bullet must cite the ids of the headlines it is based on.\n\nOnly use headlines that report market news: central banks, economic data, company\nresults or deals, government policy, geopolitics, or moves in markets themselves.\nIgnore personal finance, retirement advice, lifestyle and general explainers.\nIf nothing is market-relevant, respond with []. Never pad to reach a number of bullets.\n\nState only what the headlines say. Do not speculate about impact: no phrasing such as\n\"may be relevant\" or \"could affect\" unless the headline itself says it.\n\nRespond with JSON only, in this form:\n[{\"bullet\": \"...\", \"sources\": [1, 4]}]\n\nHeadlines:\n[1] (ECB) Boris Vuj\u010di\u0107: Integrated, open and resilient: Europe\u2019s strengths in a fragmenting world - \n",
+  "raw_response": "[{\"bullet\": \"The ECB published a speech by Boris Vuj\u010di\u0107 titled \\\"Integrated, open and resilient: Europe's strengths in a fragmenting world.\\\" The headline does not indicate any policy decision or market impact.\", \"sources\": [1]}]",
+  "error": null,
+  "run_at": "2026-11-02T16:13:00+00:00",
+  "headlines": [
+    {
+      "source": "ECB",
+      "title": "Boris Vuj\u010di\u0107: Integrated, open and resilient: Europe\u2019s strengths in a fragmenting world",
+      "summary": "",
+      "link": "https://www.ecb.europa.eu//press/key/date/2026/html/ecb.sp.261102~70003226e9.en.html",
+      "published": "2026-11-02T09:30:00+00:00",
+      "id": 1
+    }
+  ]
 }
