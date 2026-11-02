@@ -37,6 +37,8 @@ st.caption(f"Cross-asset moves before the US open, with checks that flag bad dat
            f"Data last fetched {moves.format_fetched(last_fetch)}")
 
 # ---- 1. Data status banner: the first thing anyone sees ----
+if moves.is_fetch_stale(last_fetch, pd.Timestamp.now(tz="UTC")):
+    st.error(f"Data is stale: last updated {moves.format_fetched(last_fetch)}. The refresh may have stopped running.")
 problems = [r for r in results if r.status != checks.Status.OK]
 if overall == checks.Status.OK:
     st.success("All data checks passed.")

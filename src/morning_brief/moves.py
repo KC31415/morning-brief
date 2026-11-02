@@ -33,6 +33,17 @@ def change_tint(change: str) -> str:
     return "background-color: #e3f3ec" if change.startswith("+") else "background-color: #fbe9e4"
 
 
+def is_fetch_stale(fetched_at: str | None, now) -> bool:
+    """True once more than one weekday has passed since the fetch, by New York date."""
+    if not fetched_at:
+        return True
+    fetched = pd.Timestamp(fetched_at)
+    fetched = fetched.tz_localize("UTC") if fetched.tz is None else fetched
+    fetched_day = fetched.tz_convert("America/New_York").tz_localize(None).normalize()
+    today = pd.Timestamp(now).tz_convert("America/New_York").tz_localize(None).normalize()
+    return len(pd.bdate_range(fetched_day + pd.Timedelta(days=1), today)) > 1
+
+
 def format_fetched(fetched_at: str | None) -> str:
     return f"{pd.Timestamp(fetched_at):%a %b %d, %H:%M UTC}" if fetched_at else "never"
 

@@ -15,6 +15,7 @@ This is a public rebuild of a dashboard I built during my 2026 sales & trading i
 - **Latest change** for 21 instruments across equities, rates, FX and commodities (% change for prices, basis points for yields), each labeled with its from → to dates and basis: live, last session or prior US session
 - **Source and cross-check** on every row, showing the second source's value and date, or "single source"
 - **Data status banner** at the top: green if every check passes, yellow for warnings, red if something failed, with details on exactly which series and why
+- **Stale-page banner:** red if the last fetch is more than one business day old, whatever the checks say
 - **News brief:** 0–5 LLM-written bullets on what matters for the open, each linked to the headlines it came from
 - **Runs itself** every weekday before the open via GitHub Actions
 

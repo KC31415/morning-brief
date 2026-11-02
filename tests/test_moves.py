@@ -106,3 +106,15 @@ def test_fetched_time_is_readable():
 def test_cross_check_label_can_show_the_compared_value_and_date():
     label = moves.cross_check_label("fred", Status.OK, "4.980", pd.Timestamp("2026-10-29"))
     assert label == "✓ FRED 4.980 (Thu 10-29)"
+
+
+@pytest.mark.parametrize("fetched,now,stale", [
+    ("2026-11-02T11:00:00+00:00", "2026-11-03 10:59", False),  # Mon run, just before Tue's
+    ("2026-10-30T11:00:00+00:00", "2026-11-02 10:59", False),  # the weekend doesn't count
+    ("2026-10-31T17:00:00+00:00", "2026-11-02 12:00", False),  # Saturday run, viewed Monday
+    ("2026-10-30T11:00:00+00:00", "2026-11-03 12:00", True),   # Fri run, Mon's and Tue's missed
+    ("2026-11-02T11:00:00+00:00", "2026-11-04 12:00", True),
+    (None, "2026-11-04 12:00", True),
+])
+def test_fetch_stale_after_more_than_one_business_day(fetched, now, stale):
+    assert moves.is_fetch_stale(fetched, pd.Timestamp(now, tz="UTC")) is stale

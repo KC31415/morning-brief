@@ -19,7 +19,8 @@ def yield_series(ticker, end, offset=0.0, source="yfinance"):
     rng = np.random.default_rng(0)
     dates = pd.bdate_range(end=end, periods=80)
     closes = 4.2 + offset + np.cumsum(rng.normal(0, 0.03, 80))
-    return pd.DataFrame({"date": dates, "ticker": ticker, "close": closes, "source": source, "fetched_at": "2026-01-01"})
+    return pd.DataFrame({"date": dates, "ticker": ticker, "close": closes, "source": source,
+                         "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds")})
 
 
 def test_reconciliation_failure_flags_the_main_row(tmp_path, monkeypatch):
@@ -192,3 +193,34 @@ def test_tile_for_flagged_market_shows_its_flag(tmp_path, monkeypatch):
     # The 10Y series is alone here: its missing reference is a FAIL, which rolls up to this row.
     at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": None, "headlines": []})
     assert [m.label for m in at.metric] == ["US 10Y yield ❌"]
+
+
+def only_tnx_config(monkeypatch):
+    cfg = config.load_config()
+    cfg.update(instruments=[i for i in cfg["instruments"] if i["ticker"] == "^TNX"], reconcile=[])
+    monkeypatch.setattr(config, "load_config", lambda: cfg)
+
+
+def page_fetched_at(tmp_path, monkeypatch, fetched_at):
+    db = tmp_path / "brief.db"
+    conn = sqlite3.connect(db)
+    conn.executescript(storage.SCHEMA)
+    end = checks.expected_session(datetime.now(timezone.utc), "XNYS")
+    storage.upsert_prices(conn, yield_series("^TNX", end).assign(fetched_at=fetched_at))
+    conn.close()
+    monkeypatch.setattr(config, "DB_PATH", db)
+    monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
+    only_tnx_config(monkeypatch)
+    return AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+
+
+def test_old_fetch_shows_red_stale_banner_even_when_checks_pass(tmp_path, monkeypatch):
+    fetched = (pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=7)).isoformat(timespec="seconds")
+    at = page_fetched_at(tmp_path, monkeypatch, fetched)
+    assert any(s.value == "All data checks passed." for s in at.success)
+    assert at.error[0].value.startswith("Data is stale: last updated ")
+
+
+def test_recent_fetch_has_no_stale_banner(tmp_path, monkeypatch):
+    at = page_fetched_at(tmp_path, monkeypatch, pd.Timestamp.now(tz="UTC").isoformat(timespec="seconds"))
+    assert not at.error

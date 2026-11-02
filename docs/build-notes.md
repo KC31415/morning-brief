@@ -192,3 +192,9 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **Futures and FX:** CME futures trade through most US holidays, yet Yahoo's futures had no row on them. `CMES` would have flagged 13 false misses in two years, while `XNYS` gave none, so futures follow `XNYS`. It describes Yahoo's data, not CME's actual hours. No exchange covers FX, so `FX` is weekdays minus Jan 1 and Dec 25, the two recurring days Yahoo had no row.
 - **Remaining limits:** Euro Stoxx has no exact calendar. Its 7 misses include dates like May 14 and 25, 2026, and I couldn't confirm why Yahoo skipped them. They stay under the gap threshold of 3 unless they cluster. The `exchange_calendars` holidays are maintained by that project, so a late-announced closure could be wrong until it updates.
 - **Result on real data:** with the stored database, the checks went from one Nikkei WARN to all passing. `exchange_calendars` itself triggers pandas deprecation warnings, like yfinance, which are harmless for now. That also made one README sentence false, "Next I'd add exchange holiday calendars", so it came out.
+
+## 23. Stale-page banner
+
+- **What was wrong:** the checks only see what's in the database. If the scheduled refresh stopped, freshness would eventually flag each ticker, but nothing said plainly that the page itself hadn't been updated.
+- **How it was found:** reviewing what a visitor would see if GitHub Actions stopped running.
+- **What changed:** a red banner appears above the status banner when the last fetch is more than one weekday old, whatever the other checks say, with the time it was last updated. It uses New York dates and plain weekdays rather than a market calendar, because the schedule runs on weekdays, holidays included. A Friday fetch is fine on Monday and stale on Tuesday.
