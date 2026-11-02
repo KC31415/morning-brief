@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = ROOT / "config" / "instruments.yaml"
 DB_PATH = ROOT / "data" / "brief.db"
 SUMMARY_PATH = ROOT / "data" / "summary.json"
+REPORT_PATH = ROOT / "data" / "check_report.json"
 
 
 def load_config(path: Path = CONFIG_PATH) -> dict:

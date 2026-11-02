@@ -11,8 +11,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from morning_brief import checks, ingest, news, storage, summarize  # noqa: E402
-from morning_brief.config import DB_PATH, SUMMARY_PATH, load_config  # noqa: E402
+from morning_brief import alerts, checks, ingest, news, storage, summarize  # noqa: E402
+from morning_brief.config import DB_PATH, REPORT_PATH, SUMMARY_PATH, load_config  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("refresh")
@@ -31,6 +31,7 @@ def main() -> int:
     prices = storage.load_prices(conn)
     results = checks.run_all(prices, cfg, as_of=now)
     storage.log_checks(conn, run_at, results)
+    alerts.write_report(REPORT_PATH, alerts.failures(results))
     overall = checks.overall_status(results)
     for r in results:
         if r.status != checks.Status.OK:

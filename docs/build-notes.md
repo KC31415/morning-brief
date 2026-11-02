@@ -198,3 +198,11 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **What was wrong:** the checks only see what's in the database. If the scheduled refresh stopped, freshness would eventually flag each ticker, but nothing said plainly that the page itself hadn't been updated.
 - **How it was found:** reviewing what a visitor would see if GitHub Actions stopped running.
 - **What changed:** a red banner appears above the status banner when the last fetch is more than one weekday old, whatever the other checks say, with the time it was last updated. It uses New York dates and plain weekdays rather than a market calendar, because the schedule runs on weekdays, holidays included. A Friday fetch is fine on Monday and stale on Tuesday.
+
+## 24. GitHub issue on FAIL
+
+- **What was missing:** a FAIL turned the Actions run red and showed on the page, but nobody was told unless they went looking.
+- **How it was found:** asking what would happen to a failure on a day no one opened the page.
+- **What changed:** `refresh.py` writes its FAILs to `data/check_report.json` (not committed). A new workflow step, `scripts/alert.py`, then keeps one issue titled "Data checks failing" in sync. It opens the issue on a FAIL, updates it with a comment if the list changes, leaves it alone if nothing changed, and closes it on the next run with no FAILs. WARNs don't count.
+- **Decisions:** the step runs even if an earlier one failed. A missing report counts as a failure, so a crash can't look like a clean run or quietly close an open issue. Duplicates are prevented by checking open issues for that exact title, so renaming or retitling the issue by hand would create a new one.
+- **Not tested on GitHub yet:** the tests use a fake `gh` and parse the workflow file, so the first real proof is a run on GitHub.

@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   refresh:
@@ -34,6 +35,12 @@ jobs:
           git add data/brief.db data/summary.json
           git commit -m "Data refresh $(date -u +%Y-%m-%dT%H:%MZ)" || echo "nothing to commit"
           git push
+
+      - name: Open or close the failing-checks issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/alert.py
 
       - name: Fail the job if any data check failed
         if: steps.run.outcome == 'failure'
