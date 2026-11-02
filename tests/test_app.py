@@ -98,7 +98,7 @@ def test_table_shows_source_and_marks_single_source_unverified(tmp_path, monkeyp
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
 
     rows = pd.concat([d.value for d in at.dataframe]).set_index("name")
-    assert rows.loc["US 10Y yield", "source"] == "yfinance"
+    assert rows.loc["US 10Y yield", "source"] == "Yahoo"
     assert rows.loc["US 10Y yield", "cross-check"] == "✓ FRED"
     assert rows.loc["US 10Y yield (FRED)", "cross-check"] == "✓ Yahoo"
     assert rows.loc["Gold", "cross-check"] == "unverified"
@@ -171,3 +171,23 @@ def test_table_has_no_as_of_column_and_keeps_cross_check(tmp_path, monkeypatch):
     tables = [d.value for d in at.dataframe if "name" in d.value.columns]
     assert tables and all("as of" not in t.columns and "cross-check" in t.columns for t in tables)
     assert not at.columns  # side-by-side tables clip the cross-check column
+
+
+def test_showcase_page_has_key_market_tiles_and_trend_column(tmp_path, monkeypatch):
+    at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": None, "headlines": []})
+    assert not at.exception
+    assert [m.label for m in at.metric] == ["US 10Y yield ⚠️"]
+    tables = [d.value for d in at.dataframe if "name" in d.value.columns]
+    row = pd.concat(tables).set_index("name").loc["US 10Y yield"]
+    assert len(row["trend"]) == 20
+
+
+def test_no_headlines_reads_as_a_sentence(tmp_path, monkeypatch):
+    at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": "no headlines", "headlines": []})
+    assert [i.value for i in at.info] == ["No new official releases since the previous US close."]
+
+
+def test_tile_for_flagged_market_shows_its_flag(tmp_path, monkeypatch):
+    # The 10Y series is alone here, so reconciliation warns "one side missing".
+    at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": None, "headlines": []})
+    assert [m.label for m in at.metric] == ["US 10Y yield ⚠️"]

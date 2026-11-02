@@ -89,3 +89,15 @@ def test_published_date_is_shown_when_known():
 def test_banner_counts_use_the_right_plural():
     assert moves.count_label(1, "data warning", "data warnings") == "1 data warning"
     assert moves.count_label(2, "data warning", "data warnings") == "2 data warnings"
+
+
+def test_change_tint_follows_direction_and_leaves_flat_or_missing_plain():
+    assert moves.change_tint("+1.20%") == moves.change_tint("+0.5 bp") != ""
+    assert moves.change_tint("-1.20%") == moves.change_tint("-2.5 bp") != ""
+    assert moves.change_tint("+1.20%") != moves.change_tint("-1.20%")
+    assert moves.change_tint("+0.00%") == moves.change_tint("-0.0 bp") == moves.change_tint("n/a") == ""
+
+
+def test_fetched_time_is_readable():
+    assert moves.format_fetched("2026-10-31T17:57:15+00:00") == "Sat Oct 31, 17:57 UTC"
+    assert moves.format_fetched(None) == "never"

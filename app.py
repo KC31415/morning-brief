@@ -32,8 +32,9 @@ pair_status = checks.cross_check_status(results, cfg.get("reconcile", []))
 sources = {i["ticker"]: i["source"] for i in cfg["instruments"]}
 
 st.title("Morning Brief")
-last_fetch = prices["fetched_at"].max() if not prices.empty else "never"
-st.caption(f"Data last fetched {last_fetch} UTC")
+last_fetch = prices["fetched_at"].max() if not prices.empty else None
+st.caption(f"Cross-asset moves before the US open, with checks that flag bad data.  \n"
+           f"Data last fetched {moves.format_fetched(last_fetch)}")
 
 # ---- 1. Data status banner: the first thing anyone sees ----
 problems = [r for r in results if r.status != checks.Status.OK]
@@ -54,6 +55,8 @@ if problems:
 
 # ---- 2. Latest change by asset class ----
 FLAG = {checks.Status.OK: "", checks.Status.WARN: "⚠️", checks.Status.FAIL: "❌"}
+KEY_MARKETS = ["ES=F", "^TNX", "DX-Y.NYB", "CL=F", "GC=F", "^VIX"]
+TREND_DAYS = 20
 rows = []
 for inst in cfg["instruments"]:
     g = prices[prices["ticker"] == inst["ticker"]].sort_values("date")
@@ -61,22 +64,48 @@ for inst in cfg["instruments"]:
     cross_check = moves.cross_check_label(sources[partners[t]], pair_status[t]) if t in partners else "unverified"
     flag = FLAG[by_ticker.get(inst["ticker"], checks.Status.OK)]  # same results as the banner
     if len(g) < 2:
-        rows.append({"group": inst["group"], "name": inst["name"], "last": None, "Change": "n/a",
-                     "from → to": None, "basis": None, "source": inst["source"], "cross-check": cross_check, "flag": flag})
+        rows.append({"ticker": t, "group": inst["group"], "name": inst["name"], "last": None, "Change": "n/a",
+                     "trend": g["close"].tolist(), "from → to": None, "basis": None,
+                     "source": moves.SOURCE_LABELS[inst["source"]], "cross-check": cross_check, "flag": flag})
         continue
     last, prev = g["close"].iloc[-1], g["close"].iloc[-2]
     latest = g.iloc[-1]
     change = f"{(last - prev) * 100:+.1f} bp" if inst["kind"] == "yield" else f"{(last / prev - 1) * 100:+.2f}%"
-    rows.append({"group": inst["group"], "name": inst["name"], "last": moves.format_last(last, inst["kind"], inst["group"]), "Change": change,
+    rows.append({"ticker": t, "group": inst["group"], "name": inst["name"],
+                 "last": moves.format_last(last, inst["kind"], inst["group"]), "Change": change,
+                 "trend": g["close"].tail(TREND_DAYS).tolist(),
                  "from → to": moves.date_span(g["date"].iloc[-2], latest["date"]),
                  "basis": moves.change_basis(latest["date"], latest["fetched_at"], cfg["sessions"][inst["session"]]),
-                 "source": inst["source"], "cross-check": cross_check, "flag": flag})
+                 "source": moves.SOURCE_LABELS[inst["source"]], "cross-check": cross_check, "flag": flag})
 table = pd.DataFrame(rows)
 
+by_key = table.set_index("ticker")
+tiles = [t for t in KEY_MARKETS if t in by_key.index and pd.notna(by_key.loc[t, "last"])]
+# A wrapping row, so tile values stay whole on narrower screens
+with st.container(horizontal=True):
+    for t in tiles:
+        row = by_key.loc[t]
+        st.metric(f"{row['name']} {row['flag']}".strip(), row["last"], row["Change"], border=True, width=195,
+                  chart_data=row["trend"], chart_type="line",
+                  help=f"{row['from → to']} ({row['basis']}). The line shows the last {TREND_DAYS} closes.")
+
+# Fixed pixel widths that add up to fit a 1024px screen with no column clipped
+COLUMNS = {
+    "name": st.column_config.TextColumn("Instrument", width=175),
+    "last": st.column_config.TextColumn("Last", width=75),
+    "Change": st.column_config.TextColumn("Change", width=70),
+    "trend": st.column_config.LineChartColumn(f"{TREND_DAYS}d trend", width=75),
+    "from → to": st.column_config.TextColumn("From → to", width=160),
+    "basis": st.column_config.TextColumn("Basis", width=115),
+    "source": st.column_config.TextColumn("Source", width=60),
+    "cross-check": st.column_config.TextColumn("Cross-check", width=85),
+    "flag": st.column_config.TextColumn("Flag", width=45),
+}
 # One table per row: side by side, the rightmost columns get clipped on a laptop screen
 for group, g in table.groupby("group", sort=False):
     st.subheader(group)
-    st.dataframe(g.drop(columns="group"), hide_index=True, width="stretch")
+    styled = g.drop(columns=["group", "ticker"]).style.map(moves.change_tint, subset=["Change"])
+    st.dataframe(styled, hide_index=True, width="stretch", column_config=COLUMNS)
 
 st.caption("Each change compares a ticker's last two rows, so periods differ by market. "
            "live = that session was still open when fetched; it is not a real-time price.")
@@ -94,6 +123,8 @@ if SUMMARY_PATH.exists():
             refs = " ".join(f"[[{n}]]({links[n]['link']})" for n in b["sources"] if n in links)
             st.markdown(f"- {moves.escape_dollars(b['bullet'])} {refs}")
         st.caption(f"AI-generated from the headlines below ({s['model']}). Check sources before acting.")
+    elif s.get("error") == "no headlines":
+        st.info("No new official releases since the previous US close.")
     elif s.get("error"):
         st.info(s["error"])
     else:
@@ -104,3 +135,16 @@ if SUMMARY_PATH.exists():
             st.markdown(f"[{h['id']}] **{h['source']}**{f' ({date})' if date else ''}: [{moves.escape_dollars(h['title'])}]({h['link']})")
 else:
     st.info("No news summary yet.")
+
+# ---- 4. How the page checks itself ----
+st.divider()
+with st.expander("How the data checks work"):
+    st.markdown("""
+- **Completeness:** every instrument arrived with enough history and no bad values.
+- **Freshness:** the latest row is from the session we expect.
+- **Gaps:** no business days are missing from recent history.
+- **Sanity:** today's move is plausible for that instrument, and the price isn't frozen.
+- **Reconciliation:** two sources for the same series agree.
+""")
+st.caption("Built from free public sources, not production market data. "
+           "[Source code and build notes](https://github.com/KC31415/morning-brief)")

@@ -1,0 +1,10 @@
+[theme]
+base = "light"
+primaryColor = "#2a78d6"
+backgroundColor = "#fcfcfb"
+secondaryBackgroundColor = "#f3f3f1"
+textColor = "#0b0b0b"
+greenColor = "#1a7f5a"
+redColor = "#c8452b"
+baseRadius = "small"
+headingFontSizes = ["2.25rem", "1.25rem", "1.1rem"]

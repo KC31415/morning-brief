@@ -24,6 +24,17 @@ def cross_check_label(partner_source: str, status: Status) -> str:
     return f"{CHECK_MARKS[status]} {SOURCE_LABELS[partner_source]}"
 
 
+def change_tint(change: str) -> str:
+    """Cell style for a change: pale green up, pale red down. The sign stays, so color isn't the only cue."""
+    if change.startswith(("n/a",)) or not any(c in "123456789" for c in change):
+        return ""
+    return "background-color: #e3f3ec" if change.startswith("+") else "background-color: #fbe9e4"
+
+
+def format_fetched(fetched_at: str | None) -> str:
+    return f"{pd.Timestamp(fetched_at):%a %b %d, %H:%M UTC}" if fetched_at else "never"
+
+
 def count_label(n: int, singular: str, plural: str) -> str:
     return f"{n} {singular if n == 1 else plural}"
 
