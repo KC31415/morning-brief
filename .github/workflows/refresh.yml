@@ -2,8 +2,9 @@ name: pre-open refresh
 
 on:
   schedule:
-    # 11:00 UTC on weekdays = 7:00am New York in summer, 6:00am in winter
-    - cron: "0 11 * * 1-5"
+    # 11:17 UTC on weekdays = 7:17am New York in summer, 6:17am in winter
+    # Off the hour: GitHub warns that top-of-hour schedules can be delayed or dropped
+    - cron: "17 11 * * 1-5"
   workflow_dispatch: {}   # lets you run it by hand from the Actions tab
 
 permissions:

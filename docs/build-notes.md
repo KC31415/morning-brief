@@ -246,3 +246,10 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
   - Times are only what the source printed, otherwise "time not published". That's common: FOMC and ECB publish none here, and Treasury only fills in the time once an auction is announced.
 - **Decisions:** BEA and Census publish the same trade release, so it's one row with both links. Times from BEA and Census are labeled ET because they're US agencies and their pages don't name a zone, which is an assumption. Next business days are plain weekdays, not holiday-adjusted. ECB dates are its own calendar dates. Tests use trimmed copies of real responses in `tests/fixtures/schedules/`.
 - **A bug this exposed:** a test added with the ranking chart opened the page against the real `data/brief.db`, and page load adds any new empty tables, so running tests changed a committed file. That test now uses a temporary database, and `tests/conftest.py` fails the whole run if any test changes a file in `data/`.
+
+## 28. Moved the refresh off the top of the hour
+
+- **What happened:** the first scheduled slot, Monday Nov 2 at 11:00 UTC, produced no run. Five hours later GitHub still showed no scheduled runs at all. The cron and YAML were valid, the workflow was active, GitHub listed no Actions incident, and a manual run of the same file passed.
+- **Likely cause, not confirmed:** GitHub says scheduled runs can be delayed during heavy load, especially at the top of the hour, and may be dropped. Its scheduler logs aren't visible, and this is one miss.
+- **What changed:** the cron is now `17 11 * * 1-5`. The stale-page banner compares New York dates, so it doesn't depend on the exact time.
+- **Still open:** this hasn't been proven until a scheduled run appears. A run that never starts also can't open a GitHub issue, because `alert.py` runs inside the workflow, so the stale-page banner is the only sign.
