@@ -22,7 +22,7 @@ def yield_series(ticker, end, offset=0.0, source="yfinance"):
     return pd.DataFrame({"date": dates, "ticker": ticker, "close": closes, "source": source, "fetched_at": "2026-01-01"})
 
 
-def test_reconciliation_failure_flags_both_tickers(tmp_path, monkeypatch):
+def test_reconciliation_failure_flags_the_main_row(tmp_path, monkeypatch):
     db = tmp_path / "brief.db"
     conn = sqlite3.connect(db)
     conn.executescript(storage.SCHEMA)
@@ -39,9 +39,8 @@ def test_reconciliation_failure_flags_both_tickers(tmp_path, monkeypatch):
     rows = pd.concat([d.value for d in at.dataframe])
     flags = dict(zip(rows["name"], rows["flag"]))
     assert flags["US 10Y yield"] == "❌"
-    assert flags["US 10Y yield (FRED)"] == "❌"
     marks = dict(zip(rows["name"], rows["cross-check"]))
-    assert marks["US 10Y yield"] == "✗ FRED"  # a failed check must not show a tick
+    assert marks["US 10Y yield"].startswith("✗ FRED ")  # a failed check must not show a tick
 
 
 def test_table_shows_change_span_and_basis(tmp_path, monkeypatch):
@@ -99,8 +98,9 @@ def test_table_shows_source_and_marks_single_source_unverified(tmp_path, monkeyp
 
     rows = pd.concat([d.value for d in at.dataframe]).set_index("name")
     assert rows.loc["US 10Y yield", "source"] == "Yahoo"
-    assert rows.loc["US 10Y yield", "cross-check"] == "✓ FRED"
-    assert rows.loc["US 10Y yield (FRED)", "cross-check"] == "✓ Yahoo"
+    fred = yield_series("DGS10", end).iloc[-1]
+    assert rows.loc["US 10Y yield", "cross-check"] == f"✓ FRED {fred['close']:.3f} ({fred['date']:%a %m-%d})"
+    assert "US 10Y yield (FRED)" not in rows.index
     assert rows.loc["Gold", "cross-check"] == "unverified"
     assert any("single-source" in c.value for c in at.caption)
 
@@ -176,7 +176,7 @@ def test_table_has_no_as_of_column_and_keeps_cross_check(tmp_path, monkeypatch):
 def test_showcase_page_has_key_market_tiles_and_trend_column(tmp_path, monkeypatch):
     at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": None, "headlines": []})
     assert not at.exception
-    assert [m.label for m in at.metric] == ["US 10Y yield ⚠️"]
+    assert [m.label for m in at.metric] == ["US 10Y yield ❌"]
     tables = [d.value for d in at.dataframe if "name" in d.value.columns]
     row = pd.concat(tables).set_index("name").loc["US 10Y yield"]
     assert len(row["trend"]) == 20
@@ -188,6 +188,6 @@ def test_no_headlines_reads_as_a_sentence(tmp_path, monkeypatch):
 
 
 def test_tile_for_flagged_market_shows_its_flag(tmp_path, monkeypatch):
-    # The 10Y series is alone here, so reconciliation warns "one side missing".
+    # The 10Y series is alone here: its missing reference is a FAIL, which rolls up to this row.
     at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": None, "headlines": []})
-    assert [m.label for m in at.metric] == ["US 10Y yield ⚠️"]
+    assert [m.label for m in at.metric] == ["US 10Y yield ❌"]

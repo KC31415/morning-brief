@@ -20,8 +20,10 @@ def change_basis(row_date: pd.Timestamp, fetched_at: str, session: dict) -> str:
     return "live" if fetched < close else session["complete"]
 
 
-def cross_check_label(partner_source: str, status: Status) -> str:
-    return f"{CHECK_MARKS[status]} {SOURCE_LABELS[partner_source]}"
+def cross_check_label(partner_source: str, status: Status, value: str | None = None,
+                      date: pd.Timestamp | None = None) -> str:
+    label = f"{CHECK_MARKS[status]} {SOURCE_LABELS[partner_source]}"
+    return f"{label} {value} ({date:%a %m-%d})" if value is not None else label
 
 
 def change_tint(change: str) -> str:

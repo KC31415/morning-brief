@@ -201,6 +201,15 @@ def run_all(prices: pd.DataFrame, config: dict, as_of) -> list[CheckResult]:
     )
 
 
+def compared_value(prices: pd.DataFrame, a: str, b: str) -> tuple[pd.Timestamp, float] | None:
+    """The date reconciliation compares and series b's value on it: their last shared date."""
+    wide = prices[prices["ticker"].isin([a, b])].pivot_table(index="date", columns="ticker", values="close")
+    if a not in wide or b not in wide:
+        return None
+    both = wide[[a, b]].dropna()
+    return None if both.empty else (both.index[-1], float(both[b].iloc[-1]))
+
+
 def cross_checks(pairs: list[dict]) -> dict[str, str]:
     """Each ticker that has a second source, mapped to that source."""
     return {p["a"]: p["b"] for p in pairs} | {p["b"]: p["a"] for p in pairs}
@@ -224,6 +233,10 @@ def worst_by_ticker(results: list[CheckResult], pairs: list[dict]) -> dict[str, 
         for t in members.get(r.ticker, (r.ticker,)):
             if t and r.status > worst.get(t, Status.OK):
                 worst[t] = r.status
+    # A reference series has no row of its own, so its problems show on the main row
+    for p in pairs:
+        if worst.get(p["b"], Status.OK) > worst.get(p["a"], Status.OK):
+            worst[p["a"]] = worst[p["b"]]
     return worst
 
 

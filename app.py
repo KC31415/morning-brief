@@ -58,10 +58,16 @@ FLAG = {checks.Status.OK: "", checks.Status.WARN: "⚠️", checks.Status.FAIL: 
 KEY_MARKETS = ["ES=F", "^TNX", "DX-Y.NYB", "CL=F", "GC=F", "^VIX"]
 TREND_DAYS = 20
 rows = []
-for inst in cfg["instruments"]:
+main_instruments = [i for i in cfg["instruments"] if not i.get("reference")]
+for inst in main_instruments:
     g = prices[prices["ticker"] == inst["ticker"]].sort_values("date")
     t = inst["ticker"]
-    cross_check = moves.cross_check_label(sources[partners[t]], pair_status[t]) if t in partners else "unverified"
+    if t in partners:
+        compared = checks.compared_value(prices, t, partners[t])
+        value = moves.format_last(compared[1], inst["kind"], inst["group"]) if compared else None
+        cross_check = moves.cross_check_label(sources[partners[t]], pair_status[t], value, compared[0] if compared else None)
+    else:
+        cross_check = "unverified"
     flag = FLAG[by_ticker.get(inst["ticker"], checks.Status.OK)]  # same results as the banner
     if len(g) < 2:
         rows.append({"ticker": t, "group": inst["group"], "name": inst["name"], "last": None, "Change": "n/a",
@@ -91,15 +97,15 @@ with st.container(horizontal=True):
 
 # Fixed pixel widths that add up to fit a 1024px screen with no column clipped
 COLUMNS = {
-    "name": st.column_config.TextColumn("Instrument", width=175),
-    "last": st.column_config.TextColumn("Last", width=75),
-    "Change": st.column_config.TextColumn("Change", width=70),
-    "trend": st.column_config.LineChartColumn(f"{TREND_DAYS}d trend", width=75),
-    "from → to": st.column_config.TextColumn("From → to", width=160),
-    "basis": st.column_config.TextColumn("Basis", width=115),
-    "source": st.column_config.TextColumn("Source", width=60),
-    "cross-check": st.column_config.TextColumn("Cross-check", width=85),
-    "flag": st.column_config.TextColumn("Flag", width=45),
+    "name": st.column_config.TextColumn("Instrument", width=140),
+    "last": st.column_config.TextColumn("Last", width=70),
+    "Change": st.column_config.TextColumn("Change", width=65),
+    "trend": st.column_config.LineChartColumn(f"{TREND_DAYS}d trend", width=65),
+    "from → to": st.column_config.TextColumn("From → to", width=150),
+    "basis": st.column_config.TextColumn("Basis", width=105),
+    "source": st.column_config.TextColumn("Source", width=55),
+    "cross-check": st.column_config.TextColumn("Cross-check", width=175),
+    "flag": st.column_config.TextColumn("Flag", width=40),
 }
 # One table per row: side by side, the rightmost columns get clipped on a laptop screen
 for group, g in table.groupby("group", sort=False):
@@ -109,8 +115,8 @@ for group, g in table.groupby("group", sort=False):
 
 st.caption("Each change compares a ticker's last two rows, so periods differ by market. "
            "live = that session was still open when fetched; it is not a real-time price.")
-n_single = sum(i["ticker"] not in partners for i in cfg["instruments"])
-st.caption(f"{n_single} of {len(cfg['instruments'])} instruments are single-source (unverified): "
+n_single = sum(i["ticker"] not in partners for i in main_instruments)
+st.caption(f"{n_single} of {len(main_instruments)} instruments are single-source (unverified): "
            "passing checks means they look plausible, not that a second source agrees.")
 
 # ---- 3. News brief with sources ----

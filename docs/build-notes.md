@@ -142,3 +142,10 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **What changed:** the feeds are now Fed, ECB, BEA and EIA Today in Energy. Each returned items when checked, but the newest were 1 to 2 days old on a Saturday. BLS and USDA returned 403 to the feed parser, and Treasury's feed URL returned 404, so they aren't included.
 - **Trade-off:** the brief now only covers official releases, not market news like company results, and it will often be empty. That's the cost of a public page. The empty-list message handles it honestly.
 - **Attribution:** the headline list shows each source's name, publication date and link, which covers EIA's request for the date. The ECB asks for accuracy, which an LLM summary can't guarantee, so the "check sources" caption matters.
+
+## 20. Reference series moved out of the tables
+
+- **What was wrong:** the second-source series (FRED 10Y, 5Y and 3M, ECB EUR/USD) had their own table rows, so the page listed the same market twice with different dates and read like more instruments than it has.
+- **How it was found:** reviewing the dashboard as an employer would see it.
+- **What changed:** those series are marked `reference: true`. They are still fetched and checked, and reconciliation logic is unchanged, but each now appears in its main row's cross-check cell, e.g. "✓ FRED 4.980 (Thu 10-29)". The value and date are the ones reconciliation compares: the last date both sources share. The date is shown in full because a weekday alone would be misleading once a reference is more than a week old.
+- **Knock-on fix:** with no row of its own, a reference series' warning would have appeared in the banner with no flagged row. `worst_by_ticker` now rolls those problems up to the main row.

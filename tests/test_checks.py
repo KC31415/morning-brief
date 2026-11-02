@@ -218,3 +218,26 @@ def test_cross_check_status_applies_to_both_sides():
     pair = {"a": "A", "b": "B"}
     r = [checks.CheckResult("reconciliation", "A vs B", Status.WARN, "")]
     assert checks.cross_check_status(r, [pair]) == {"A": Status.WARN, "B": Status.WARN}
+
+
+# ---------- reference series ----------
+def test_compared_value_is_the_reference_on_the_last_shared_date():
+    a = make_series("A", end="2026-10-29", n=5)
+    b = make_series("B", end="2026-10-28", n=5)
+    date, value = checks.compared_value(pd.concat([a, b]), "A", "B")
+    assert date == pd.Timestamp("2026-10-28") and value == b["close"].iloc[-1]
+
+
+def test_compared_value_is_none_when_there_is_no_overlap():
+    assert checks.compared_value(make_series("A"), "A", "B") is None
+
+
+def test_problem_on_a_reference_series_flags_its_main_row():
+    # Reference series have no row of their own, so the banner's warning needs somewhere to show.
+    r = [checks.CheckResult("freshness", "B", Status.WARN, "")]
+    assert checks.worst_by_ticker(r, [{"a": "A", "b": "B"}])["A"] == Status.WARN
+
+
+def test_configured_reference_series_are_exactly_the_pair_second_sides():
+    cfg = load_config()
+    assert {i["ticker"] for i in cfg["instruments"] if i.get("reference")} == {p["b"] for p in cfg["reconcile"]}

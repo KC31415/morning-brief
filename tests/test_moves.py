@@ -101,3 +101,8 @@ def test_change_tint_follows_direction_and_leaves_flat_or_missing_plain():
 def test_fetched_time_is_readable():
     assert moves.format_fetched("2026-10-31T17:57:15+00:00") == "Sat Oct 31, 17:57 UTC"
     assert moves.format_fetched(None) == "never"
+
+
+def test_cross_check_label_can_show_the_compared_value_and_date():
+    label = moves.cross_check_label("fred", Status.OK, "4.980", pd.Timestamp("2026-10-29"))
+    assert label == "✓ FRED 4.980 (Thu 10-29)"
