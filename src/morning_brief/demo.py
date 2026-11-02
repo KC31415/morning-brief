@@ -97,7 +97,8 @@ def _not_caught(prices: pd.DataFrame, inst: dict, cfg: dict, fault: str) -> str:
     return text + " A real error this small would get through, which is why a second source matters."
 
 
-def simulate(prices: pd.DataFrame, config: dict, ticker: str, fault: str, as_of) -> Simulation:
+def simulate(prices: pd.DataFrame, config: dict, ticker: str, fault: str, as_of, other_results=()) -> Simulation:
+    """other_results are real results the fault can't affect, so the simulated banner counts them too."""
     inst = next(i for i in config["instruments"] if i["ticker"] == ticker)
     faulty = apply_fault(prices, inst, fault, config["checks"], as_of)
     before = checks.run_all(prices, config, as_of)
@@ -111,7 +112,7 @@ def simulate(prices: pd.DataFrame, config: dict, ticker: str, fault: str, as_of)
                                     f"Simulated: **{r.check}** caught it ({r.status.name}): {measured}."))
     findings.sort(key=lambda f: -f.status)
     status_before, status_after = checks.overall_status(before), checks.overall_status(after)
-    _, banner = moves.banner_message(after)
+    _, banner = moves.banner_message(after + list(other_results))
     row_before = moves.build_row(inst, prices, before, config)
     row_after = moves.build_row(inst, faulty, after, config)
     message = ("Simulated: the page would flag this." if findings

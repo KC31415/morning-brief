@@ -1,0 +1,122 @@
+[
+ {
+  "securityType": "Bill",
+  "securityTerm": "13-Week",
+  "type": "Bill",
+  "cusip": "912797VV6",
+  "reopening": "Yes",
+  "announcementDate": "2026-10-29T00:00:00",
+  "competitiveAuctionCloseDate": "2026-11-02T00:00:00",
+  "competitiveAuctionCloseTime": "11:30 AM"
+ },
+ {
+  "securityType": "Bill",
+  "securityTerm": "26-Week",
+  "type": "Bill",
+  "cusip": "912797WX1",
+  "reopening": "No",
+  "announcementDate": "2026-10-29T00:00:00",
+  "competitiveAuctionCloseDate": "2026-11-02T00:00:00",
+  "competitiveAuctionCloseTime": "11:30 AM"
+ },
+ {
+  "securityType": "Bill",
+  "securityTerm": "6-Week",
+  "type": "Bill",
+  "cusip": "912797VH7",
+  "reopening": "Yes",
+  "announcementDate": "2026-10-29T00:00:00",
+  "competitiveAuctionCloseDate": "2026-11-03T00:00:00",
+  "competitiveAuctionCloseTime": "11:30 AM"
+ },
+ {
+  "securityType": "Bill",
+  "securityTerm": "17-Week",
+  "type": "Bill",
+  "cusip": "912797XG7",
+  "reopening": "No",
+  "announcementDate": "2026-11-03T00:00:00",
+  "competitiveAuctionCloseDate": "2026-11-04T00:00:00",
+  "competitiveAuctionCloseTime": ""
+ },
+ {
+  "securityType": "Bill",
+  "securityTerm": "4-Week",
+  "type": "Bill",
+  "cusip": "912797WE3",
+  "reopening": "Yes",
+  "announcementDate": "2026-11-03T00:00:00",
+  "competitiveAuctionCloseDate": "2026-11-05T00:00:00",
+  "competitiveAuctionCloseTime": ""
+ },
+ {
+  "securityType": "Bill",
+  "securityTerm": "8-Week",
+  "type": "Bill",
+  "cusip": "912797WN3",
+  "reopening": "Yes",
+  "announcementDate": "2026-11-03T00:00:00",
+  "competitiveAuctionCloseDate": "2026-11-05T00:00:00",
+  "competitiveAuctionCloseTime": ""
+ },
+ {
+  "securityType": "Note",
+  "securityTerm": "3-Year",
+  "type": "Note",
+  "cusip": "91282CRW3",
+  "reopening": "No",
+  "announcementDate": "2026-11-04T00:00:00",
+  "competitiveAuctionCloseDate": "2026-11-09T00:00:00",
+  "competitiveAuctionCloseTime": ""
+ },
+ {
+  "securityType": "Note",
+  "securityTerm": "10-Year",
+  "type": "Note",
+  "cusip": "91282CRX1",
+  "reopening": "No",
+  "announcementDate": "2026-11-04T00:00:00",
+  "competitiveAuctionCloseDate": "2026-11-10T00:00:00",
+  "competitiveAuctionCloseTime": ""
+ },
+ {
+  "securityType": "Bond",
+  "securityTerm": "30-Year",
+  "type": "Bond",
+  "cusip": "912810UY2",
+  "reopening": "No",
+  "announcementDate": "2026-11-04T00:00:00",
+  "competitiveAuctionCloseDate": "2026-11-12T00:00:00",
+  "competitiveAuctionCloseTime": ""
+ },
+ {
+  "securityType": "Bill",
+  "securityTerm": "13-Week",
+  "type": "Bill",
+  "cusip": "912797WB9",
+  "reopening": "Yes",
+  "announcementDate": "2026-11-05T00:00:00",
+  "competitiveAuctionCloseDate": "2026-11-09T00:00:00",
+  "competitiveAuctionCloseTime": ""
+ },
+ {
+  "securityType": "Bill",
+  "securityTerm": "26-Week",
+  "type": "Bill",
+  "cusip": "912797UX3",
+  "reopening": "Yes",
+  "announcementDate": "2026-11-05T00:00:00",
+  "competitiveAuctionCloseDate": "2026-11-09T00:00:00",
+  "competitiveAuctionCloseTime": ""
+ },
+ {
+  "securityType": "Bill",
+  "securityTerm": "6-Week",
+  "type": "Bill",
+  "cusip": "912797TC1",
+  "reopening": "Yes",
+  "announcementDate": "2026-11-05T00:00:00",
+  "competitiveAuctionCloseDate": "2026-11-09T00:00:00",
+  "competitiveAuctionCloseTime": ""
+ }
+]

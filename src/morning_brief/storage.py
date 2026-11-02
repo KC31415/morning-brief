@@ -20,6 +20,21 @@ CREATE TABLE IF NOT EXISTS check_runs (
     status   TEXT NOT NULL,
     detail   TEXT
 );
+CREATE TABLE IF NOT EXISTS schedule_events (
+    source      TEXT NOT NULL,
+    event       TEXT NOT NULL,
+    event_date  TEXT NOT NULL,
+    event_time  TEXT,
+    link        TEXT NOT NULL,
+    fetched_at  TEXT NOT NULL,
+    PRIMARY KEY (source, event, event_date)
+);
+CREATE TABLE IF NOT EXISTS schedule_status (
+    source        TEXT PRIMARY KEY,
+    last_attempt  TEXT NOT NULL,
+    last_success  TEXT,
+    error         TEXT
+);
 """
 
 
@@ -56,3 +71,29 @@ def log_checks(conn: sqlite3.Connection, run_at: str, results) -> None:
         [(run_at, r.check, r.ticker, r.status.name, r.detail) for r in results],
     )
     conn.commit()
+
+
+def save_schedules(conn: sqlite3.Connection, events, status: dict, fetched_at: str) -> None:
+    """A good fetch replaces that source's events, so cancellations disappear. A failed one keeps the old ones."""
+    for source, error in status.items():
+        if error is None:
+            conn.execute("DELETE FROM schedule_events WHERE source = ?", (source,))
+        conn.execute(
+            "INSERT INTO schedule_status (source, last_attempt, last_success, error) VALUES (?, ?, ?, ?) "
+            "ON CONFLICT(source) DO UPDATE SET last_attempt = excluded.last_attempt, error = excluded.error, "
+            "last_success = COALESCE(excluded.last_success, schedule_status.last_success)",
+            (source, fetched_at, fetched_at if error is None else None, error),
+        )
+    conn.executemany(
+        "INSERT OR REPLACE INTO schedule_events (source, event, event_date, event_time, link, fetched_at) VALUES (?, ?, ?, ?, ?, ?)",
+        [(e.source, e.event, e.date, e.time, e.link, fetched_at) for e in events],
+    )
+    conn.commit()
+
+
+def load_schedule_events(conn: sqlite3.Connection) -> pd.DataFrame:
+    return pd.read_sql_query("SELECT source, event, event_date, event_time, link, fetched_at FROM schedule_events", conn)
+
+
+def load_schedule_status(conn: sqlite3.Connection) -> pd.DataFrame:
+    return pd.read_sql_query("SELECT source, last_attempt, last_success, error FROM schedule_status", conn)

@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from morning_brief import alerts, checks, ingest, news, storage, summarize  # noqa: E402
+from morning_brief import alerts, checks, ingest, news, schedules, storage, summarize  # noqa: E402
 from morning_brief.config import DB_PATH, REPORT_PATH, SUMMARY_PATH, load_config  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -29,7 +29,10 @@ def main() -> int:
         storage.upsert_prices(conn, fetched)
 
     prices = storage.load_prices(conn)
-    results = checks.run_all(prices, cfg, as_of=now)
+    events, status = schedules.fetch_all(cfg.get("schedules", []), now)
+    storage.save_schedules(conn, events, status, run_at)
+    results = checks.run_all(prices, cfg, as_of=now) + schedules.check_schedules(
+        storage.load_schedule_status(conn), storage.load_schedule_events(conn), cfg.get("schedules", []), now)
     storage.log_checks(conn, run_at, results)
     alerts.write_report(REPORT_PATH, alerts.failures(results))
     overall = checks.overall_status(results)

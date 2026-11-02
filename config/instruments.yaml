@@ -85,6 +85,16 @@ news_feeds:
   - {name: BEA,             url: "https://apps.bea.gov/rss/rss.xml"}
   - {name: EIA,             url: "https://www.eia.gov/rss/todayinenergy.xml"}
 
+# Official calendars, fetched during the refresh. {year} is filled in from today's date.
+# BLS (CPI, jobs) is left out because its site refuses automated requests.
+# max_days_to_next: how soon a loaded calendar should show its next event before it counts as stale.
+schedules:
+  - {name: BEA, parser: bea, urls: ["https://www.bea.gov/news/schedule"], link: "https://www.bea.gov/news/schedule", max_days_to_next: 45}
+  - {name: Census, parser: census, urls: ["https://www.census.gov/economic-indicators/calendar-listview-{year}.html", "https://www.census.gov/economic-indicators/calendar-listview.html"], link: "https://www.census.gov/economic-indicators/calendar-listview.html", max_days_to_next: 30}
+  - {name: FOMC, parser: fomc, urls: ["https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"], link: "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm", max_days_to_next: 120}
+  - {name: ECB, parser: ecb, urls: ["https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html"], link: "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html", max_days_to_next: 120}
+  - {name: Treasury, parser: treasury, urls: ["https://www.treasurydirect.gov/TA_WS/securities/upcoming?format=json"], link: "https://www.treasurydirect.gov/auctions/upcoming/", max_days_to_next: 10}
+
 checks:
   lookback_days: 60          # history used for volatility in the sanity check
   stale_warn_bdays: 1        # sessions behind expected before WARN

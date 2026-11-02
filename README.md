@@ -18,6 +18,7 @@ This is a public rebuild of a dashboard I built during my 2026 sales & trading i
 - **Stale-page banner:** red if the last fetch is more than one business day old, whatever the checks say
 - **News brief:** 0–5 LLM-written bullets on what matters for the open, each linked to the headlines it came from
 - **How unusual is today?** every instrument ranked by its latest move in robust standard deviations, with the WARN and FAIL thresholds marked
+- **What's scheduled today:** official release, meeting and auction calendars in New York time, stating when a calendar couldn't load or a time wasn't published
 - **Try to break it:** inject a bad print, frozen feed, stale ticker or ×10 yield into an in-memory copy of the data and see which check catches it, or that none does
 - **Runs itself** every weekday before the open via GitHub Actions, opening a GitHub issue on any FAIL and closing it after the next clean run
 

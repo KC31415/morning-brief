@@ -71,7 +71,7 @@ def test_short_history_flag_matches_banner(tmp_path, monkeypatch):
     storage.upsert_prices(conn, yield_series("^TNX", end).tail(1))
     conn.close()
     cfg = config.load_config()
-    cfg.update(instruments=[i for i in cfg["instruments"] if i["ticker"] == "^TNX"], reconcile=[])
+    cfg.update(instruments=[i for i in cfg["instruments"] if i["ticker"] == "^TNX"], reconcile=[], schedules=[])
     monkeypatch.setattr(config, "DB_PATH", db)
     monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
     monkeypatch.setattr(config, "load_config", lambda: cfg)
@@ -158,7 +158,7 @@ def test_single_warning_banner_is_singular(tmp_path, monkeypatch):
     storage.upsert_prices(conn, yield_series("^TNX", end))
     conn.close()
     cfg = config.load_config()
-    cfg.update(instruments=[i for i in cfg["instruments"] if i["ticker"] == "^TNX"], reconcile=[])
+    cfg.update(instruments=[i for i in cfg["instruments"] if i["ticker"] == "^TNX"], reconcile=[], schedules=[])
     monkeypatch.setattr(config, "DB_PATH", db)
     monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
     monkeypatch.setattr(config, "load_config", lambda: cfg)
@@ -197,7 +197,7 @@ def test_tile_for_flagged_market_shows_its_flag(tmp_path, monkeypatch):
 
 def only_tnx_config(monkeypatch):
     cfg = config.load_config()
-    cfg.update(instruments=[i for i in cfg["instruments"] if i["ticker"] == "^TNX"], reconcile=[])
+    cfg.update(instruments=[i for i in cfg["instruments"] if i["ticker"] == "^TNX"], reconcile=[], schedules=[])
     monkeypatch.setattr(config, "load_config", lambda: cfg)
 
 

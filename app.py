@@ -12,7 +12,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from morning_brief import checks, demo, moves, ranking, storage  # noqa: E402
+from morning_brief import checks, demo, moves, ranking, schedules, storage  # noqa: E402
 from morning_brief.config import DB_PATH, SUMMARY_PATH, load_config  # noqa: E402
 
 st.set_page_config(page_title="Morning Brief", layout="wide")
@@ -24,7 +24,9 @@ if not DB_PATH.exists():
 
 conn = storage.connect(DB_PATH)
 prices = storage.load_prices(conn)
-results = checks.run_all(prices, cfg, as_of=datetime.now(timezone.utc))
+schedule_events, schedule_status = storage.load_schedule_events(conn), storage.load_schedule_status(conn)
+schedule_results = schedules.check_schedules(schedule_status, schedule_events, cfg.get("schedules", []), pd.Timestamp.now(tz="UTC"))
+results = checks.run_all(prices, cfg, as_of=datetime.now(timezone.utc)) + schedule_results
 partners = checks.cross_checks(cfg.get("reconcile", []))
 
 st.title("Morning Brief")
@@ -115,7 +117,7 @@ with st.container(border=True):
         fault_label = fault_pick.selectbox("Fault", labels, key="demo_fault")
         if st.button("Inject fault (simulated)", key="demo_inject"):
             fault = next(k for k, v in demo.FAULTS.items() if v == fault_label)
-            sim = demo.simulate(prices, cfg, inst["ticker"], fault, datetime.now(timezone.utc))
+            sim = demo.simulate(prices, cfg, inst["ticker"], fault, datetime.now(timezone.utc), schedule_results)
             st.markdown("**Simulated result. Real data is unchanged.**")
             {checks.Status.OK: st.success, checks.Status.WARN: st.warning, checks.Status.FAIL: st.error}[sim.status_after](sim.banner)
             if sim.findings:
@@ -127,7 +129,38 @@ with st.container(border=True):
     else:
         st.info("Not enough data to run the demo yet.")
 
-# ---- 5. News brief with sources ----
+# ---- 5. What's scheduled today: official calendars, loaded by the refresh ----
+def schedule_line(row):
+    links = " · ".join(f"[{name}]({link})" for name, link in row["sources"])
+    return f"- **{row['time']}** {moves.escape_dollars(row['event'])} ({links})"
+
+
+st.subheader("What's scheduled today")
+view = schedules.build_view(schedule_status, schedule_events, cfg.get("schedules", []), pd.Timestamp.now(tz="UTC"))
+if view.state == "not_loaded":
+    st.error("Couldn't load the calendar, so this says nothing about whether events are scheduled today.")
+else:
+    if view.failed:
+        st.warning(f"Couldn't load the latest calendar from {', '.join(view.failed)}. Today's list may be incomplete. See check details.")
+    for row in view.today:
+        st.markdown(schedule_line(row))
+    if not view.today and not view.failed:
+        st.info("No events scheduled today in the calendars below.")
+    elif not view.today:
+        st.info("No events listed today in the calendars that did load.")
+    n_upcoming = sum(len(rows) for rows in view.upcoming.values())
+    with st.expander(f"Next 5 business days ({n_upcoming} events)"):
+        for day, day_rows in view.upcoming.items():
+            st.markdown(f"**{pd.Timestamp(day):%a %b %d}**")
+            for row in day_rows:
+                st.markdown(schedule_line(row))
+            if not day_rows:
+                st.caption("No events listed.")
+st.caption("Times are New York time, as published. Covers "
+           f"{', '.join(s['name'] for s in cfg.get('schedules', []))}. Not covered: BLS, including CPI and jobs reports, "
+           "because its site refuses automated requests. Check [its schedule](https://www.bls.gov/schedule/news_release/) directly.")
+
+# ---- 6. News brief with sources ----
 st.subheader("Overnight news")
 if SUMMARY_PATH.exists():
     s = json.loads(SUMMARY_PATH.read_text())
@@ -150,7 +183,7 @@ if SUMMARY_PATH.exists():
 else:
     st.info("No news summary yet.")
 
-# ---- 6. How the page checks itself ----
+# ---- 7. How the page checks itself ----
 st.divider()
 with st.expander("How the data checks work"):
     st.markdown("""

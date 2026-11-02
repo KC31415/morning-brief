@@ -10,7 +10,8 @@ from streamlit.testing.v1 import AppTest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from morning_brief import checks, ranking  # noqa: E402
+from morning_brief import checks, ranking, storage  # noqa: E402
+from morning_brief import config as settings  # noqa: E402
 
 CFG = {"lookback_days": 60, "move_warn_z": 4.0, "move_fail_z": 10.0, "frozen_changes": 10}
 
@@ -79,7 +80,14 @@ def test_chart_stretches_to_fit_a_move_past_the_fail_line():
     assert domain[1] > table["z"].max()
 
 
-def test_page_shows_the_ranking():
+def test_page_shows_the_ranking(tmp_path, monkeypatch):
+    # A temporary database: opening the page must never touch the real data file
+    path = tmp_path / "brief.db"
+    conn = storage.connect(path)
+    storage.upsert_prices(conn, series("GC=F").assign(source="yfinance", fetched_at="2026-10-29T11:00:00+00:00"))
+    conn.close()
+    monkeypatch.setattr(settings, "DB_PATH", path)
+    monkeypatch.setattr(settings, "SUMMARY_PATH", tmp_path / "summary.json")
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
     assert not at.exception
     assert "How unusual is today?" in [s.value for s in at.subheader]

@@ -221,3 +221,28 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **Limit:** the moves cover different periods by market, so a live overnight move can rank next to a completed session. The caption says so. Instruments with too little history are named, not silently dropped.
 - **Requirement change:** `st.altair_chart` first accepts `width` in Streamlit 1.51, so the minimum went from 1.49 to 1.51. The full suite ran on 1.51.0.
 - **Layout:** checked at 1024px and 1440px, with no clipped labels. Checking also showed the demo's invitation was below the fold, under the tiles, so it moved up to directly below the banner.
+
+## 27. "What's scheduled today" panel
+
+- **Why:** a pre-open page should say what's coming, and the project's standard applies here too: official sources, no guessed values, and a clear difference between "nothing is scheduled" and "I couldn't find out".
+- **Sources, tested live Nov 1, 2026** (three straight fetches, about 1.4 seconds in all). I couldn't test from GitHub's servers, so those runs are the first real proof there.
+
+| Source | What it gives | Times published? | Reuse terms | Result |
+|---|---|---|---|---|
+| BEA release schedule | News releases | Yes | No statement found on the pages I read; relying on the general rule that US federal works aren't copyrighted | Used |
+| Census indicator calendar | Indicators and period | Yes | Same general rule. The terms page I found covers its API, not this page, and bars implying endorsement | Used |
+| FOMC calendar | Meeting dates | No | Federal Reserve Board: public domain unless otherwise indicated, cite the Board | Used |
+| ECB meeting calendar | Monetary policy meetings only | No | Free use if accurate and cited | Used |
+| TreasuryDirect upcoming auctions | Auctions | Only once announced in full | Same general rule; its legal pages returned 404 to me | Used |
+| BLS release schedule | CPI, jobs | n/a | Not reached | **Not used: returns 403** |
+| Treasury Fiscal Data upcoming auctions | Auctions | No | n/a | Not used: oldest records come first and it adds no times |
+
+- **The BLS gap matters:** CPI and jobs reports are among the biggest scheduled events, and BLS refused requests even with a clear user agent, so I didn't try to get around it. The panel always says BLS isn't covered and links to its schedule, because "no events today" could otherwise be badly misleading on a CPI morning.
+- **What changed:** new `schedules.py` fetches during `refresh.py`, never on page load, and stores results in two new tables: `schedule_events` (event, date, time, source, link) and `schedule_status` (last attempt, last success, error). The page shows today in New York time, sorted by time, each with its source link, and the next 5 business days in a collapsed section.
+- **Data-quality rules:**
+  - A failed or redesigned source records an error and keeps its previous events. A page we can't parse raises, so a redesign can't look like an empty calendar.
+  - Each source gets a `schedule` check, shown in check details and saved in `check_runs`: WARN if it failed, never loaded, is more than one business day old, or shows no event within its expected horizon. They're WARNs because market data isn't affected, so they don't open a GitHub issue.
+  - The panel separates "No events scheduled today", "Couldn't load the latest calendar from X" and "Couldn't load the calendar".
+  - Times are only what the source printed, otherwise "time not published". That's common: FOMC and ECB publish none here, and Treasury only fills in the time once an auction is announced.
+- **Decisions:** BEA and Census publish the same trade release, so it's one row with both links. Times from BEA and Census are labeled ET because they're US agencies and their pages don't name a zone, which is an assumption. Next business days are plain weekdays, not holiday-adjusted. ECB dates are its own calendar dates. Tests use trimmed copies of real responses in `tests/fixtures/schedules/`.
+- **A bug this exposed:** a test added with the ranking chart opened the page against the real `data/brief.db`, and page load adds any new empty tables, so running tests changed a committed file. That test now uses a temporary database, and `tests/conftest.py` fails the whole run if any test changes a file in `data/`.
