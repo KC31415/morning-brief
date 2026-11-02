@@ -14,4 +14,5 @@ def load_config(path: Path = CONFIG_PATH) -> dict:
         cfg = yaml.safe_load(f)
     for inst in cfg["instruments"]:
         inst.setdefault("source", "yfinance")
+        inst.setdefault("calendar", cfg["sessions"][inst["session"]]["calendar"])
     return cfg

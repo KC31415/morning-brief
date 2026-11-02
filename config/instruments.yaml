@@ -2,6 +2,7 @@
 # source: yfinance (default), fred or ecb (ecb also needs `series`)
 # kind: price (show % change) or yield (show change in basis points)
 # session: key into `sessions` below, used to label what the change measures
+# calendar: overrides the session's calendar when a series follows a different schedule
 # reference: true for a second source only: fetched and checked, shown in its main row's cross-check cell
 
 instruments:
@@ -20,21 +21,21 @@ instruments:
   - {ticker: ^IRX,     name: US 3M T-bill rate,    group: Rates,       kind: yield, session: us_bonds}
   - {ticker: ^FVX,     name: US 5Y yield,          group: Rates,       kind: yield, session: us_bonds}
   - {ticker: ^TNX,     name: US 10Y yield,         group: Rates,       kind: yield, session: us_bonds}
-  - {ticker: DGS10,    name: US 10Y yield (FRED),  group: Rates,       kind: yield, source: fred, session: us_bonds, reference: true}
-  - {ticker: DGS5,     name: US 5Y yield (FRED),   group: Rates,       kind: yield, source: fred, session: us_bonds, reference: true}
+  - {ticker: DGS10,    name: US 10Y yield (FRED),  group: Rates,       kind: yield, source: fred, session: us_bonds, reference: true, calendar: USFED}
+  - {ticker: DGS5,     name: US 5Y yield (FRED),   group: Rates,       kind: yield, source: fred, session: us_bonds, reference: true, calendar: USFED}
   # DTB3, not DGS3MO: ^IRX and DTB3 are both quoted on a discount basis
-  - {ticker: DTB3,     name: US 3M T-bill rate (FRED), group: Rates,       kind: yield, source: fred, session: us_bonds, reference: true}
+  - {ticker: DTB3,     name: US 3M T-bill rate (FRED), group: Rates,       kind: yield, source: fred, session: us_bonds, reference: true, calendar: USFED}
 
   # FX
   - {ticker: DX-Y.NYB, name: Dollar index,         group: FX,          kind: price, session: futures_fx}
-  - {ticker: EURUSD=X, name: EUR/USD,              group: FX,          kind: price, session: futures_fx}
+  - {ticker: EURUSD=X, name: EUR/USD,              group: FX,          kind: price, session: fx}
   - {ticker: ECB_EURUSD, name: EUR/USD (ECB),      group: FX,          kind: price, source: ecb, series: D.USD.EUR.SP00.A, session: ecb, reference: true}
-  - {ticker: USDJPY=X, name: USD/JPY,              group: FX,          kind: price, session: futures_fx}
-  - {ticker: GBPUSD=X, name: GBP/USD,              group: FX,          kind: price, session: futures_fx}
+  - {ticker: USDJPY=X, name: USD/JPY,              group: FX,          kind: price, session: fx}
+  - {ticker: GBPUSD=X, name: GBP/USD,              group: FX,          kind: price, session: fx}
 
   # H.10 noon rates, published weekly, so they can be six business days behind
-  - {ticker: DEXJPUS,  name: USD/JPY (FRED),       group: FX,          kind: price, source: fred, session: futures_fx, reference: true, lag_bdays: 6}
-  - {ticker: DEXUSUK,  name: GBP/USD (FRED),       group: FX,          kind: price, source: fred, session: futures_fx, reference: true, lag_bdays: 6}
+  - {ticker: DEXJPUS,  name: USD/JPY (FRED),       group: FX,          kind: price, source: fred, session: fx, reference: true, lag_bdays: 6, calendar: USFED}
+  - {ticker: DEXUSUK,  name: GBP/USD (FRED),       group: FX,          kind: price, source: fred, session: fx, reference: true, lag_bdays: 6, calendar: USFED}
 
   # Commodities
   - {ticker: CL=F,     name: WTI crude,            group: Commodities, kind: price, session: futures_fx}
@@ -49,15 +50,18 @@ instruments:
 
 # When each market's daily row is complete. A row fetched before this time on its
 # own date is labeled "live"; afterwards it gets the `complete` label.
+# calendar: the dates each market should have a row (see calendars.py). Yahoo's futures
+# and Dollar index have no row on US holidays, so they follow XNYS, not CME.
 sessions:
-  futures_fx: {tz: America/New_York, close: "17:00", complete: last session}
-  cbot:       {tz: America/Chicago,  close: "13:20", complete: last session}
-  europe:     {tz: Europe/Berlin,    close: "17:30", complete: last session}
-  ecb:        {tz: Europe/Berlin,    close: "16:00", complete: last session}
-  tokyo:      {tz: Asia/Tokyo,       close: "15:30", complete: last session}
-  hong_kong:  {tz: Asia/Hong_Kong,   close: "16:00", complete: last session}
-  us_vix:     {tz: America/New_York, close: "16:15", complete: prior US session}
-  us_bonds:   {tz: America/New_York, close: "15:30", complete: prior US session}
+  futures_fx: {tz: America/New_York, close: "17:00", complete: last session, calendar: XNYS}
+  fx:         {tz: America/New_York, close: "17:00", complete: last session, calendar: FX}
+  cbot:       {tz: America/Chicago,  close: "13:20", complete: last session, calendar: XNYS}
+  europe:     {tz: Europe/Berlin,    close: "17:30", complete: last session, calendar: XETR}
+  ecb:        {tz: Europe/Berlin,    close: "16:00", complete: last session, calendar: TARGET}
+  tokyo:      {tz: Asia/Tokyo,       close: "15:30", complete: last session, calendar: XTKS}
+  hong_kong:  {tz: Asia/Hong_Kong,   close: "16:00", complete: last session, calendar: XHKG}
+  us_vix:     {tz: America/New_York, close: "16:15", complete: prior US session, calendar: XNYS}
+  us_bonds:   {tz: America/New_York, close: "15:30", complete: prior US session, calendar: XNYS}
 
 # Pairs of series that measure the same thing, used to cross-check sources.
 # tolerance is in the series' units (percentage points for yields: 0.05 = 5bp).
@@ -83,9 +87,9 @@ news_feeds:
 
 checks:
   lookback_days: 60          # history used for volatility in the sanity check
-  stale_warn_bdays: 1        # business days behind expected before WARN
+  stale_warn_bdays: 1        # sessions behind expected before WARN
   stale_fail_bdays: 3        # ... before FAIL
-  gap_warn: 3                # missing business days in lookback before WARN
+  gap_warn: 3                # missing sessions in lookback before WARN
   move_warn_z: 4.0           # daily move this many robust std devs (scaled MAD) -> WARN
   move_fail_z: 10.0          # ... this many -> FAIL (almost certainly bad data)
   min_rows: 22               # fewer rows than this -> WARN (sanity needs 21 changes to judge)

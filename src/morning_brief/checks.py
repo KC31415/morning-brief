@@ -6,7 +6,7 @@ as a banner, so a late or broken feed is visible instead of silently stale.
 Checks:
   freshness       latest date for each ticker vs the session we expect
   completeness    every configured ticker arrived; no bad values
-  gaps            missing business days in the recent history
+  gaps            sessions missing from the recent history
   sanity          today's move vs that instrument's normal volatility
   reconciliation  two sources for the same series agree
 """
@@ -15,6 +15,8 @@ from enum import IntEnum
 
 import numpy as np
 import pandas as pd
+
+from morning_brief.calendars import sessions
 
 
 class Status(IntEnum):
@@ -35,11 +37,8 @@ class CheckResult:
 SOURCE_LAG_BDAYS = {"yfinance": 0, "fred": 1, "ecb": 0}
 
 
-def expected_session(as_of: pd.Timestamp) -> pd.Timestamp:
-    """Last completed US business day before `as_of` (we run before the open).
-
-    Ignores exchange holidays on purpose; a holiday shows up as a WARN, which is
-    the honest outcome (a human should glance at it), not a FAIL.
+def expected_session(as_of: pd.Timestamp, calendar: str | None = None) -> pd.Timestamp:
+    """Last completed session before `as_of` (we run before the open), on that market's calendar.
 
     Stored dates are naive, so a timezone-aware `as_of` is converted to New York
     time and made naive. A naive `as_of` is taken as already being local.
@@ -47,26 +46,28 @@ def expected_session(as_of: pd.Timestamp) -> pd.Timestamp:
     ts = pd.Timestamp(as_of)
     if ts.tz is not None:
         ts = ts.tz_convert("America/New_York").tz_localize(None)
-    return (ts.normalize() - pd.offsets.BDay(1)).normalize()
+    today = ts.normalize()
+    return sessions(calendar, today - pd.Timedelta(days=30), today - pd.Timedelta(days=1))[-1]
 
 
-def bdays_between(start: pd.Timestamp, end: pd.Timestamp) -> int:
-    """Business days from start to end (0 if start >= end)."""
+def sessions_between(start: pd.Timestamp, end: pd.Timestamp, calendar: str | None = None) -> int:
+    """Sessions after start, up to and including end (0 if start >= end)."""
     if start >= end:
         return 0
-    return len(pd.bdate_range(start, end)) - 1
+    return int((sessions(calendar, start, end) > start).sum())
 
 
 def check_freshness(prices: pd.DataFrame, instruments: list[dict], as_of, cfg: dict) -> list[CheckResult]:
-    expected = expected_session(as_of)
     latest = prices.groupby("ticker")["date"].max()
     out = []
     for inst in instruments:
         t = inst["ticker"]
         if t not in latest.index:
             continue  # completeness reports missing tickers
+        calendar = inst.get("calendar")
+        expected = expected_session(as_of, calendar)
         lag = inst.get("lag_bdays", SOURCE_LAG_BDAYS.get(inst["source"], 0))
-        behind = bdays_between(latest[t], expected) - lag
+        behind = sessions_between(latest[t], expected, calendar) - lag
         behind = max(behind, 0)
         if behind >= cfg["stale_fail_bdays"]:
             status = Status.FAIL
@@ -75,7 +76,7 @@ def check_freshness(prices: pd.DataFrame, instruments: list[dict], as_of, cfg: d
         else:
             status = Status.OK
         out.append(CheckResult("freshness", t, status,
-                               f"latest {latest[t]:%Y-%m-%d}, expected {expected:%Y-%m-%d} ({behind} bday behind)"))
+                               f"latest {latest[t]:%Y-%m-%d}, expected {expected:%Y-%m-%d} ({behind} sessions behind)"))
     return out
 
 
@@ -99,17 +100,19 @@ def check_completeness(prices: pd.DataFrame, instruments: list[dict], cfg: dict)
     return out
 
 
-def check_gaps(prices: pd.DataFrame, cfg: dict) -> list[CheckResult]:
+def check_gaps(prices: pd.DataFrame, cfg: dict, instruments: list[dict] | None = None) -> list[CheckResult]:
     out = []
+    calendars = {i["ticker"]: i.get("calendar") for i in instruments or []}
     for t, g in prices.groupby("ticker"):
         # Window by calendar, not by row count: counting the last N rows would
         # quietly skip past the very gaps we are trying to find.
         last = g["date"].max()
-        expected = pd.bdate_range(end=last, periods=cfg["lookback_days"])
+        span = pd.Timedelta(days=cfg["lookback_days"] * 2)  # calendar days, more than enough sessions
+        expected = sessions(calendars.get(t), last - span, last)[-cfg["lookback_days"]:]
         dates = pd.DatetimeIndex(g.loc[g["date"] >= expected[0], "date"])
         missing = len(expected.difference(dates))
         status = Status.WARN if missing > cfg["gap_warn"] else Status.OK
-        out.append(CheckResult("gaps", t, status, f"{missing} missing business days in window"))
+        out.append(CheckResult("gaps", t, status, f"{missing} missing sessions in window"))
     return out
 
 
@@ -196,7 +199,7 @@ def run_all(prices: pd.DataFrame, config: dict, as_of) -> list[CheckResult]:
     return (
         check_completeness(prices, insts, cfg)
         + check_freshness(prices, insts, as_of, cfg)
-        + check_gaps(prices, cfg)
+        + check_gaps(prices, cfg, insts)
         + check_sanity(prices, insts, cfg)
         + check_reconciliation(prices, config.get("reconcile", []))
     )

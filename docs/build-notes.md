@@ -171,3 +171,24 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **VIX is a judgment call:** `VIXCLS` is tagged "Copyrighted: Citation Required". FRED's FAQ says copyrighted series need the owner's permission beyond your own personal use, while allowing use on personal blogs with citation and the notice. I treated this non-commercial portfolio page as personal use and included both. Removing the pair is a small config change if that's wrong.
 - **FRED access:** the terms ban scraping and extraction and describe apps as using the API. This project downloads a small subset as CSV, and moving to the API with a free key would be cleaner before anything commercial.
 - **Stooq rejected:** its terms (section 5.3) don't allow redistribution without consent, so it isn't an option for a public page without written permission.
+
+## 22. Holiday calendars in the freshness and gap checks
+
+- **What broke:** both checks assumed every weekday was a session. Nikkei always showed 5 "missing" days, all Japanese holidays, and a WARN that lingered for about 12 weeks. Any holiday could also make a market look stale.
+- **How it was found:** the Nikkei gap warning on every live run, compared against the exchange's calendar.
+- **What changed:** new `calendars.py`, using `exchange_calendars` plus three custom calendars. Each market session in the config names a calendar, and a series can override it. Freshness and gaps now count sessions, not weekdays.
+- **How the calendars were chosen:** by comparing about two years of each source's real dates against candidates, because the right calendar is the one the source follows, not the one that sounds right.
+
+| Series | Calendar | Expected dates missing in 2 years |
+|---|---|---|
+| Nikkei, Hang Seng | `XTKS`, `XHKG` | 0 |
+| Yahoo yields, VIX, futures, Dollar index | `XNYS` | 0 |
+| `DEXJPUS`, `DEXUSUK`, `ECB_EURUSD` | `USFED`, `USFED`, `TARGET` | 0 |
+| `DGS10`, `DGS5`, `DTB3` | `USFED` | 1 (Good Friday 2025) |
+| `DCOILWTICO` | `XNYS` | 3 |
+| EUR/USD, USD/JPY, GBP/USD on Yahoo | `FX` | 2 (Good Friday and Easter Monday 2025) |
+| Euro Stoxx 50 | `XETR` | 7 |
+
+- **Futures and FX:** CME futures trade through most US holidays, yet Yahoo's futures had no row on them. `CMES` would have flagged 13 false misses in two years, while `XNYS` gave none, so futures follow `XNYS`. It describes Yahoo's data, not CME's actual hours. No exchange covers FX, so `FX` is weekdays minus Jan 1 and Dec 25, the two recurring days Yahoo had no row.
+- **Remaining limits:** Euro Stoxx has no exact calendar. Its 7 misses include dates like May 14 and 25, 2026, and I couldn't confirm why Yahoo skipped them. They stay under the gap threshold of 3 unless they cluster. The `exchange_calendars` holidays are maintained by that project, so a late-announced closure could be wrong until it updates.
+- **Result on real data:** with the stored database, the checks went from one Nikkei WARN to all passing. `exchange_calendars` itself triggers pandas deprecation warnings, like yfinance, which are harmless for now. That also made one README sentence false, "Next I'd add exchange holiday calendars", so it came out.

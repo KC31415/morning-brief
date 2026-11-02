@@ -2,6 +2,7 @@ pandas>=2.2
 numpy>=1.26
 pyyaml>=6.0
 requests>=2.31
+exchange_calendars>=4.13
 yfinance>=0.2.40
 feedparser>=6.0
 anthropic>=0.40

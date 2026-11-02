@@ -29,7 +29,7 @@ def inst(ticker, kind="price", source="yfinance"):
 
 
 # ---------- freshness ----------
-def test_expected_session_is_previous_business_day():
+def test_no_calendar_falls_back_to_weekdays():
     assert checks.expected_session(pd.Timestamp("2026-11-02 08:00")) == pd.Timestamp("2026-10-30")  # Mon -> Fri
 
 

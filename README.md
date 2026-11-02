@@ -26,7 +26,7 @@ Every refresh runs these before anything is displayed:
 |---|---|---|
 | Freshness | A feed that didn't update | Copper's latest close is 3 business days old → FAIL |
 | Completeness | A ticker with no stored data, too little history, or zero or missing prices | New ticker has no rows → FAIL; only 1 row → WARN |
-| Gaps | Holes in recent history | 5 missing days in the last 60 → WARN |
+| Gaps | Holes in recent history | 5 missing sessions in the last 60 → WARN; market holidays don't count |
 | Sanity | Moves too large to be real | A 1%-vol asset "moves" 50% → FAIL, almost certainly bad data |
 | Frozen feed | A price that hasn't changed in two weeks | Last 10 daily changes all zero → FAIL |
 | Reconciliation | Two sources disagreeing | Yields, VIX, USD/JPY, GBP/USD and WTI vs FRED; EUR/USD vs the ECB. 10Y differs by ≥15bp → FAIL |
@@ -71,8 +71,7 @@ pytest -q
 
 ## Known limitations
 
-- Freshness and gap checks use weekday calendars, not exchange holiday calendars, so a holiday (especially for Nikkei and Hang Seng) shows as a warning. I chose a false WARN over a missed real problem; exchange calendars are the next fix.
-- Nikkei holidays currently trip the gaps check: 5 missing days in the 60-day window, all matching Japanese market holidays, give a WARN that lingers for about 12 weeks. Left as is until exchange calendars are added.
+- Freshness and gap checks use market holiday calendars matched to what each source publishes, but sources don't follow them perfectly: Yahoo's Euro Stoxx 50 skipped about 7 days in two years that Xetra's calendar counts as sessions, and FRED rates can skip or include Good Friday. One-off days can still WARN.
 - yfinance triggers a pandas deprecation warning (`sort_index(inplace=True)`) on every ticker. It clutters the log but breaks nothing today; it may fail once pandas removes that keyword.
 - Free data sources have delays and occasional bad prints. That is part of why the checks exist, but this is not production market data.
 - Sanity thresholds (4 and 10 standard deviations) are judgment calls, not tuned.
@@ -80,7 +79,7 @@ pytest -q
 
 ## What I'd do differently / next
 
-The starter code passed all 21 of its tests and still couldn’t finish a real refresh: the tests used timezone-free times, and production didn’t. Since then I test with the same kinds of inputs the code sees in production, and I run against live data early. Next I’d add exchange holiday calendars, because Nikkei holidays still show up as false gap warnings. I’d also tune the sanity thresholds on more live history, since right now they’re judgment calls. Reading the AI summaries by hand taught me that citation checks prove a headline exists, not that it supports the bullet. And I’d look for a licensed news source, because sticking to official feeds with clear reuse terms often leaves the brief empty.
+The starter code passed all 21 of its tests and still couldn’t finish a real refresh: the tests used timezone-free times, and production didn’t. Since then I test with the same kinds of inputs the code sees in production, and I run against live data early. Next I’d tune the sanity thresholds on more live history, since right now they’re judgment calls. Reading the AI summaries by hand taught me that citation checks prove a headline exists, not that it supports the bullet. And I’d look for a licensed news source, because sticking to official feeds with clear reuse terms often leaves the brief empty.
 
 ## Built with
 
