@@ -12,7 +12,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from morning_brief import checks, demo, moves, storage  # noqa: E402
+from morning_brief import checks, demo, moves, ranking, storage  # noqa: E402
 from morning_brief.config import DB_PATH, SUMMARY_PATH, load_config  # noqa: E402
 
 st.set_page_config(page_title="Morning Brief", layout="wide")
@@ -46,6 +46,9 @@ if problems:
             hide_index=True, width="stretch",
         )
 
+st.markdown("**Try to break it:** inject a bad print and watch the checks catch it. "
+            "[Open the demo](#try-to-break-it)")
+
 # ---- 2. Latest change by asset class ----
 KEY_MARKETS = ["ES=F", "^TNX", "DX-Y.NYB", "CL=F", "GC=F", "^VIX"]
 main_instruments = [i for i in cfg["instruments"] if not i.get("reference")]
@@ -61,9 +64,6 @@ with st.container(horizontal=True):
         st.metric(f"{row['name']} {row['flag']}".strip(), row["last"], row["Change"], border=True, width=195,
                   chart_data=row["trend"], chart_type="line",
                   help=f"{row['from → to']} ({row['basis']}). The line shows the last {moves.TREND_DAYS} closes.")
-
-st.markdown("**Try to break it:** inject a bad print and watch the checks catch it. "
-            "[Open the demo](#try-to-break-it)")
 
 # Fixed pixel widths that add up to fit a 1024px screen with no column clipped
 COLUMNS = {
@@ -89,7 +89,18 @@ n_single = sum(i["ticker"] not in partners for i in main_instruments)
 st.caption(f"{n_single} of {len(main_instruments)} instruments are single source: "
            "passing checks means they look plausible, not that a second source agrees.")
 
-# ---- 3. Try to break it: real checks on a throwaway copy of the data ----
+# ---- 3. How unusual is today? Comparable across assets, unlike raw percentages ----
+st.subheader("How unusual is today?")
+ranked, too_short = ranking.unusual_moves(prices, cfg)
+if ranked.empty:
+    st.info("Not enough history to rank today's moves yet.")
+else:
+    st.altair_chart(ranking.chart(ranked, cfg["checks"]), width="stretch")
+    note = ("Each move is measured against that instrument's own recent volatility, using the sanity check's number. "
+            "Moves cover different periods by market; see the tables above.")
+    st.caption(note + (f" Not enough history to rank: {', '.join(too_short)}." if too_short else ""))
+
+# ---- 4. Try to break it: real checks on a throwaway copy of the data ----
 st.subheader("Try to break it", anchor="try-to-break-it")
 st.caption("Inject a fault into an in-memory copy of the data and rerun the real checks. Results are simulated: "
            "nothing is saved, and the banner at the top of this page doesn't change.")
@@ -116,7 +127,7 @@ with st.container(border=True):
     else:
         st.info("Not enough data to run the demo yet.")
 
-# ---- 4. News brief with sources ----
+# ---- 5. News brief with sources ----
 st.subheader("Overnight news")
 if SUMMARY_PATH.exists():
     s = json.loads(SUMMARY_PATH.read_text())
@@ -139,7 +150,7 @@ if SUMMARY_PATH.exists():
 else:
     st.info("No news summary yet.")
 
-# ---- 5. How the page checks itself ----
+# ---- 6. How the page checks itself ----
 st.divider()
 with st.expander("How the data checks work"):
     st.markdown("""

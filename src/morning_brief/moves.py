@@ -86,6 +86,10 @@ def banner_message(results: list) -> tuple[Status, str]:
     return overall, f"{count_label(n_failed, 'data check', 'data checks')} FAILED. Do not rely on flagged rows."
 
 
+def change_text(last: float, prev: float, kind: str) -> str:
+    return f"{(last - prev) * 100:+.1f} bp" if kind == "yield" else f"{(last / prev - 1) * 100:+.2f}%"
+
+
 def build_row(inst: dict, prices: pd.DataFrame, results: list, config: dict) -> dict:
     """One table row. The flag comes from the same results as the banner."""
     pairs = config.get("reconcile", [])
@@ -108,7 +112,7 @@ def build_row(inst: dict, prices: pd.DataFrame, results: list, config: dict) -> 
         last, prev = g["close"].iloc[-1], g["close"].iloc[-2]
         latest = g.iloc[-1]
         row.update(last=format_last(last, inst["kind"], inst["group"]),
-                   Change=f"{(last - prev) * 100:+.1f} bp" if inst["kind"] == "yield" else f"{(last / prev - 1) * 100:+.2f}%",
+                   Change=change_text(last, prev, inst["kind"]),
                    **{"from → to": date_span(g["date"].iloc[-2], latest["date"])},
                    basis=change_basis(latest["date"], latest["fetched_at"], config["sessions"][inst["session"]]))
     return row
