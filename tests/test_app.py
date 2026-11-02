@@ -172,7 +172,7 @@ def test_table_has_no_as_of_column_and_keeps_cross_check(tmp_path, monkeypatch):
     at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": None, "headlines": []})
     tables = [d.value for d in at.dataframe if "name" in d.value.columns]
     assert tables and all("as of" not in t.columns and "cross-check" in t.columns for t in tables)
-    assert not at.columns  # side-by-side tables clip the cross-check column
+    assert not any(c.dataframe for c in at.columns)  # side-by-side tables clip the cross-check column
 
 
 def test_showcase_page_has_key_market_tiles_and_trend_column(tmp_path, monkeypatch):

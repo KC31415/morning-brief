@@ -132,6 +132,16 @@ def robust_vol(changes: pd.Series) -> float:
     return 1.4826 * mad if mad > 0 else changes.std()
 
 
+def latest_move_z(prices: pd.DataFrame, inst: dict, cfg: dict) -> float | None:
+    """The latest move in robust standard deviations, or None if there isn't enough movement to judge."""
+    g = prices[prices["ticker"] == inst["ticker"]].sort_values("date")
+    chg = daily_changes(g["close"], inst["kind"]).dropna().tail(cfg["lookback_days"] + 1)
+    if len(chg) < 21:
+        return None
+    sd = robust_vol(chg.iloc[:-1])
+    return None if not np.isfinite(sd) or sd == 0 else float(abs(chg.iloc[-1]) / sd)
+
+
 def check_sanity(prices: pd.DataFrame, instruments: list[dict], cfg: dict) -> list[CheckResult]:
     out = []
     for inst in instruments:
@@ -147,12 +157,10 @@ def check_sanity(prices: pd.DataFrame, instruments: list[dict], cfg: dict) -> li
             out.append(CheckResult("sanity", t, Status.FAIL,
                                    f"no change in the last {cfg['frozen_changes']} sessions (frozen feed?)"))
             continue
-        history, latest = chg.iloc[:-1], chg.iloc[-1]
-        sd = robust_vol(history)
-        if not np.isfinite(sd) or sd == 0:
+        z = latest_move_z(prices, inst, cfg)
+        if z is None:
             out.append(CheckResult("sanity", t, Status.FAIL, "price has not moved in the window (frozen feed?)"))
             continue
-        z = abs(latest) / sd
         if z >= cfg["move_fail_z"]:
             status = Status.FAIL
         elif z >= cfg["move_warn_z"]:

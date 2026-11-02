@@ -17,6 +17,7 @@ This is a public rebuild of a dashboard I built during my 2026 sales & trading i
 - **Data status banner** at the top: green if every check passes, yellow for warnings, red if something failed, with details on exactly which series and why
 - **Stale-page banner:** red if the last fetch is more than one business day old, whatever the checks say
 - **News brief:** 0–5 LLM-written bullets on what matters for the open, each linked to the headlines it came from
+- **Try to break it:** inject a bad print, frozen feed, stale ticker or ×10 yield into an in-memory copy of the data and see which check catches it, or that none does
 - **Runs itself** every weekday before the open via GitHub Actions, opening a GitHub issue on any FAIL and closing it after the next clean run
 
 ## Data checks

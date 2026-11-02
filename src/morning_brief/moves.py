@@ -5,10 +5,13 @@ ticker can be a session still trading while another's are yesterday's closes.
 """
 import pandas as pd
 
+from morning_brief import checks
 from morning_brief.checks import Status
 
 SOURCE_LABELS = {"yfinance": "Yahoo", "fred": "FRED", "ecb": "ECB"}
 CHECK_MARKS = {Status.OK: "✓", Status.WARN: "⚠", Status.FAIL: "✗"}
+FLAGS = {Status.OK: "", Status.WARN: "⚠️", Status.FAIL: "❌"}
+TREND_DAYS = 20
 
 
 def change_basis(row_date: pd.Timestamp, fetched_at: str, session: dict) -> str:
@@ -68,3 +71,44 @@ def escape_dollars(text: str) -> str:
 
 def date_span(prev_date: pd.Timestamp, last_date: pd.Timestamp) -> str:
     return f"{prev_date:%a %m-%d} → {last_date:%a %m-%d}"
+
+
+def banner_message(results: list) -> tuple[Status, str]:
+    """The overall status and the sentence the page's banner shows for it."""
+    overall = checks.overall_status(results)
+    problems = [r for r in results if r.status != Status.OK]
+    if overall == Status.OK:
+        return overall, "All data checks passed."
+    if overall == Status.WARN:
+        return overall, (f"{count_label(len(problems), 'data warning', 'data warnings')}. "
+                         "Numbers flagged below may be stale or unusual.")
+    n_failed = sum(r.status == Status.FAIL for r in problems)
+    return overall, f"{count_label(n_failed, 'data check', 'data checks')} FAILED. Do not rely on flagged rows."
+
+
+def build_row(inst: dict, prices: pd.DataFrame, results: list, config: dict) -> dict:
+    """One table row. The flag comes from the same results as the banner."""
+    pairs = config.get("reconcile", [])
+    partners = checks.cross_checks(pairs)
+    sources = {i["ticker"]: i["source"] for i in config["instruments"]}
+    t = inst["ticker"]
+    g = prices[prices["ticker"] == t].sort_values("date")
+    if t in partners:
+        compared = checks.compared_value(prices, t, partners[t])
+        value = format_last(compared[1], inst["kind"], inst["group"]) if compared else None
+        status = checks.cross_check_status(results, pairs)[t]
+        cross_check = cross_check_label(sources[partners[t]], status, value, compared[0] if compared else None)
+    else:
+        cross_check = "single source"
+    row = {"ticker": t, "group": inst["group"], "name": inst["name"], "last": None, "Change": "n/a",
+           "trend": g["close"].tail(TREND_DAYS).tolist(), "from → to": None, "basis": None,
+           "source": SOURCE_LABELS[inst["source"]], "cross-check": cross_check,
+           "flag": FLAGS[checks.worst_by_ticker(results, pairs).get(t, Status.OK)]}
+    if len(g) >= 2:
+        last, prev = g["close"].iloc[-1], g["close"].iloc[-2]
+        latest = g.iloc[-1]
+        row.update(last=format_last(last, inst["kind"], inst["group"]),
+                   Change=f"{(last - prev) * 100:+.1f} bp" if inst["kind"] == "yield" else f"{(last / prev - 1) * 100:+.2f}%",
+                   **{"from → to": date_span(g["date"].iloc[-2], latest["date"])},
+                   basis=change_basis(latest["date"], latest["fetched_at"], config["sessions"][inst["session"]]))
+    return row

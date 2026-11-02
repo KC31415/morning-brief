@@ -12,7 +12,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from morning_brief import checks, moves, storage  # noqa: E402
+from morning_brief import checks, demo, moves, storage  # noqa: E402
 from morning_brief.config import DB_PATH, SUMMARY_PATH, load_config  # noqa: E402
 
 st.set_page_config(page_title="Morning Brief", layout="wide")
@@ -25,11 +25,7 @@ if not DB_PATH.exists():
 conn = storage.connect(DB_PATH)
 prices = storage.load_prices(conn)
 results = checks.run_all(prices, cfg, as_of=datetime.now(timezone.utc))
-overall = checks.overall_status(results)
-by_ticker = checks.worst_by_ticker(results, cfg.get("reconcile", []))
 partners = checks.cross_checks(cfg.get("reconcile", []))
-pair_status = checks.cross_check_status(results, cfg.get("reconcile", []))
-sources = {i["ticker"]: i["source"] for i in cfg["instruments"]}
 
 st.title("Morning Brief")
 last_fetch = prices["fetched_at"].max() if not prices.empty else None
@@ -40,13 +36,8 @@ st.caption(f"Cross-asset moves before the US open, with checks that flag bad dat
 if moves.is_fetch_stale(last_fetch, pd.Timestamp.now(tz="UTC")):
     st.error(f"Data is stale: last updated {moves.format_fetched(last_fetch)}. The refresh may have stopped running.")
 problems = [r for r in results if r.status != checks.Status.OK]
-if overall == checks.Status.OK:
-    st.success("All data checks passed.")
-elif overall == checks.Status.WARN:
-    st.warning(f"{moves.count_label(len(problems), 'data warning', 'data warnings')}. Numbers flagged below may be stale or unusual.")
-else:
-    n_failed = sum(r.status == checks.Status.FAIL for r in problems)
-    st.error(f"{moves.count_label(n_failed, 'data check', 'data checks')} FAILED. Do not rely on flagged rows.")
+overall, banner = moves.banner_message(results)
+{checks.Status.OK: st.success, checks.Status.WARN: st.warning, checks.Status.FAIL: st.error}[overall](banner)
 if problems:
     with st.expander("Check details"):
         st.dataframe(
@@ -56,35 +47,9 @@ if problems:
         )
 
 # ---- 2. Latest change by asset class ----
-FLAG = {checks.Status.OK: "", checks.Status.WARN: "⚠️", checks.Status.FAIL: "❌"}
 KEY_MARKETS = ["ES=F", "^TNX", "DX-Y.NYB", "CL=F", "GC=F", "^VIX"]
-TREND_DAYS = 20
-rows = []
 main_instruments = [i for i in cfg["instruments"] if not i.get("reference")]
-for inst in main_instruments:
-    g = prices[prices["ticker"] == inst["ticker"]].sort_values("date")
-    t = inst["ticker"]
-    if t in partners:
-        compared = checks.compared_value(prices, t, partners[t])
-        value = moves.format_last(compared[1], inst["kind"], inst["group"]) if compared else None
-        cross_check = moves.cross_check_label(sources[partners[t]], pair_status[t], value, compared[0] if compared else None)
-    else:
-        cross_check = "single source"
-    flag = FLAG[by_ticker.get(inst["ticker"], checks.Status.OK)]  # same results as the banner
-    if len(g) < 2:
-        rows.append({"ticker": t, "group": inst["group"], "name": inst["name"], "last": None, "Change": "n/a",
-                     "trend": g["close"].tolist(), "from → to": None, "basis": None,
-                     "source": moves.SOURCE_LABELS[inst["source"]], "cross-check": cross_check, "flag": flag})
-        continue
-    last, prev = g["close"].iloc[-1], g["close"].iloc[-2]
-    latest = g.iloc[-1]
-    change = f"{(last - prev) * 100:+.1f} bp" if inst["kind"] == "yield" else f"{(last / prev - 1) * 100:+.2f}%"
-    rows.append({"ticker": t, "group": inst["group"], "name": inst["name"],
-                 "last": moves.format_last(last, inst["kind"], inst["group"]), "Change": change,
-                 "trend": g["close"].tail(TREND_DAYS).tolist(),
-                 "from → to": moves.date_span(g["date"].iloc[-2], latest["date"]),
-                 "basis": moves.change_basis(latest["date"], latest["fetched_at"], cfg["sessions"][inst["session"]]),
-                 "source": moves.SOURCE_LABELS[inst["source"]], "cross-check": cross_check, "flag": flag})
+rows = [moves.build_row(inst, prices, results, cfg) for inst in main_instruments]
 table = pd.DataFrame(rows)
 
 by_key = table.set_index("ticker")
@@ -95,14 +60,17 @@ with st.container(horizontal=True):
         row = by_key.loc[t]
         st.metric(f"{row['name']} {row['flag']}".strip(), row["last"], row["Change"], border=True, width=195,
                   chart_data=row["trend"], chart_type="line",
-                  help=f"{row['from → to']} ({row['basis']}). The line shows the last {TREND_DAYS} closes.")
+                  help=f"{row['from → to']} ({row['basis']}). The line shows the last {moves.TREND_DAYS} closes.")
+
+st.markdown("**Try to break it:** inject a bad print and watch the checks catch it. "
+            "[Open the demo](#try-to-break-it)")
 
 # Fixed pixel widths that add up to fit a 1024px screen with no column clipped
 COLUMNS = {
     "name": st.column_config.TextColumn("Instrument", width=140),
     "last": st.column_config.TextColumn("Last", width=70),
     "Change": st.column_config.TextColumn("Change", width=65),
-    "trend": st.column_config.LineChartColumn(f"{TREND_DAYS}d trend", width=65),
+    "trend": st.column_config.LineChartColumn(f"{moves.TREND_DAYS}d trend", width=65),
     "from → to": st.column_config.TextColumn("From → to", width=150),
     "basis": st.column_config.TextColumn("Basis", width=105),
     "source": st.column_config.TextColumn("Source", width=55),
@@ -121,7 +89,34 @@ n_single = sum(i["ticker"] not in partners for i in main_instruments)
 st.caption(f"{n_single} of {len(main_instruments)} instruments are single source: "
            "passing checks means they look plausible, not that a second source agrees.")
 
-# ---- 3. News brief with sources ----
+# ---- 3. Try to break it: real checks on a throwaway copy of the data ----
+st.subheader("Try to break it", anchor="try-to-break-it")
+st.caption("Inject a fault into an in-memory copy of the data and rerun the real checks. Results are simulated: "
+           "nothing is saved, and the banner at the top of this page doesn't change.")
+with st.container(border=True):
+    breakable = [i for i in main_instruments if (prices["ticker"] == i["ticker"]).sum() >= 2]
+    if breakable:
+        names = [i["name"] for i in breakable]
+        pick, fault_pick = st.columns(2)
+        name = pick.selectbox("Instrument", names, index=names.index("Gold") if "Gold" in names else 0, key="demo_instrument")
+        inst = breakable[names.index(name)]
+        labels = [demo.FAULTS[f] for f in demo.faults_for(inst)]
+        fault_label = fault_pick.selectbox("Fault", labels, key="demo_fault")
+        if st.button("Inject fault (simulated)", key="demo_inject"):
+            fault = next(k for k, v in demo.FAULTS.items() if v == fault_label)
+            sim = demo.simulate(prices, cfg, inst["ticker"], fault, datetime.now(timezone.utc))
+            st.markdown("**Simulated result. Real data is unchanged.**")
+            {checks.Status.OK: st.success, checks.Status.WARN: st.warning, checks.Status.FAIL: st.error}[sim.status_after](sim.banner)
+            if sim.findings:
+                for finding in sim.findings:
+                    st.markdown(f"- {finding.text}")
+            else:
+                st.info(sim.message)
+            st.markdown(sim.row_text)
+    else:
+        st.info("Not enough data to run the demo yet.")
+
+# ---- 4. News brief with sources ----
 st.subheader("Overnight news")
 if SUMMARY_PATH.exists():
     s = json.loads(SUMMARY_PATH.read_text())
@@ -144,7 +139,7 @@ if SUMMARY_PATH.exists():
 else:
     st.info("No news summary yet.")
 
-# ---- 4. How the page checks itself ----
+# ---- 5. How the page checks itself ----
 st.divider()
 with st.expander("How the data checks work"):
     st.markdown("""
