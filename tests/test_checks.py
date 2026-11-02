@@ -188,7 +188,8 @@ def test_completeness_warns_below_minimum_rows(n, expected):
 
 # ---------- configured reconciliation pairs ----------
 # Largest absolute gap seen over about 120 sessions when the tolerances were set.
-OBSERVED_MAX = {"^TNX": 0.048, "^FVX": 0.041, "^IRX": 0.060, "EURUSD=X": 0.0077}
+OBSERVED_MAX = {"^TNX": 0.048, "^FVX": 0.041, "^IRX": 0.060, "EURUSD=X": 0.0077,
+                "^VIX": 0.0, "USDJPY=X": 3.83, "GBPUSD=X": 0.0182, "CL=F": 7.18}
 
 
 def configured_pairs():
@@ -197,7 +198,8 @@ def configured_pairs():
 
 def test_every_expected_pair_is_configured():
     assert {(p["a"], p["b"]) for p in configured_pairs()} == {
-        ("^TNX", "DGS10"), ("^FVX", "DGS5"), ("^IRX", "DTB3"), ("EURUSD=X", "ECB_EURUSD")}
+        ("^TNX", "DGS10"), ("^FVX", "DGS5"), ("^IRX", "DTB3"), ("EURUSD=X", "ECB_EURUSD"),
+        ("^VIX", "VIXCLS"), ("USDJPY=X", "DEXJPUS"), ("GBPUSD=X", "DEXUSUK"), ("CL=F", "DCOILWTICO")}
 
 
 @pytest.mark.parametrize("pair", configured_pairs(), ids=lambda p: p["a"])
@@ -218,6 +220,26 @@ def test_cross_check_status_applies_to_both_sides():
     pair = {"a": "A", "b": "B"}
     r = [checks.CheckResult("reconciliation", "A vs B", Status.WARN, "")]
     assert checks.cross_check_status(r, [pair]) == {"A": Status.WARN, "B": Status.WARN}
+
+
+def test_futures_are_only_compared_to_their_own_underlying():
+    # A futures contract vs a cash index has a basis and different hours, so it isn't a data check.
+    pairs = {p["a"]: p["b"] for p in configured_pairs()}
+    assert not {"ES=F", "NQ=F", "RTY=F"} & set(pairs)
+
+
+def test_nikkei_series_is_not_added_without_permission():
+    # FRED's notes: redistributing NIKKEI225 needs permission from Nikkei, and the database is public.
+    assert "NIKKEI225" not in {i["ticker"] for i in load_config()["instruments"]}
+
+
+# ---------- slow-publishing references ----------
+def test_instrument_lag_overrides_the_source_default():
+    # H.10 FX rates publish weekly, so a week-old date is normal for them and not for other FRED series.
+    weekly = dict(inst("DEXJPUS", source="fred"), lag_bdays=6)
+    df = make_series("DEXJPUS", end="2026-10-22", source="fred")
+    assert checks.check_freshness(df, [weekly], AS_OF, CFG)[0].status == Status.OK
+    assert checks.check_freshness(df, [inst("DEXJPUS", source="fred")], AS_OF, CFG)[0].status == Status.FAIL
 
 
 # ---------- reference series ----------

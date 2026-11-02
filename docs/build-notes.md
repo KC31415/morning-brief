@@ -149,3 +149,25 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **How it was found:** reviewing the dashboard as an employer would see it.
 - **What changed:** those series are marked `reference: true`. They are still fetched and checked, and reconciliation logic is unchanged, but each now appears in its main row's cross-check cell, e.g. "✓ FRED 4.980 (Thu 10-29)". The value and date are the ones reconciliation compares: the last date both sources share. The date is shown in full because a weekday alone would be misleading once a reference is more than a week old.
 - **Knock-on fix:** with no row of its own, a reference series' warning would have appeared in the banner with no flagged row. `worst_by_ticker` now rolls those problems up to the main row.
+
+## 21. More FRED cross-checks, and "single source"
+
+- **What was missing:** most instruments had no second source, including ones where a free official series exists.
+- **How it was found:** the count of unverified rows on the page, 17 of 25.
+- **What changed:** added VIX vs `VIXCLS`, USD/JPY vs `DEXJPUS`, GBP/USD vs `DEXUSUK` and WTI vs `DCOILWTICO`. "unverified" is now "single source", because a single-source value isn't known to be wrong, only unchecked. The footer now reads 13 of 21 and carries the FRED and CBOE citation. Stock index futures aren't compared to cash indices, because basis and hours would make any gap meaningless as a data check.
+- **Measured gaps** (Yahoo vs FRED, about 490 to 500 shared days to Oct 2026). Warn sits just above the largest gap, and fail at 3x warn, except for VIX.
+
+| Pair | Median gap | 95th pct | Max | Warn | Fail |
+|---|---|---|---|---|---|
+| `^VIX` vs `VIXCLS` | 0.00 | 0.00 | 2.61 | 0.05 | 0.50 |
+| `USDJPY=X` vs `DEXJPUS` | 0.41 | 1.56 | 3.83 | 4.0 | 12.0 |
+| `GBPUSD=X` vs `DEXUSUK` | 0.0034 | 0.0099 | 0.0182 | 0.02 | 0.06 |
+| `CL=F` vs `DCOILWTICO` | 0.78 | 3.82 | 7.18 | 8.0 | 24.0 |
+
+- **A real disagreement in the history:** VIX matches exactly on every other shared day, but on Feb 6, 2026 Yahoo says 20.37 and FRED says 17.76, with 17.36 the next session. So I set the VIX tolerance from the normal zero gap, not the outlier, and this check would have failed that day. I can't tell from these two sources alone which is right.
+- **Conventions and timing:** FRED's H.10 FX rates are noon New York buying rates, while Yahoo's row closes later, so the gap is mostly timing. Quoting matches: yen per dollar and dollars per pound. FX references publish weekly and WTI spot weekly, so they get `lag_bdays`, and a comparison can be about a week old; the cell shows its date.
+- **Weak check:** WTI compares a front-month future with Cushing spot. Yahoo averaged $2.63 below spot over the last 120 sessions and differed by up to $7.18, so this catches gross errors like a wrong unit or symbol, not ordinary bad prints.
+- **Nikkei left out on purpose:** the `^N225` vs `NIKKEI225` gap never exceeded 0.004, so it would be an excellent check. But FRED's notes say redistributing that data needs permission from Nikkei, and this project publishes both the value and its database. It stays single source unless Nikkei agrees.
+- **VIX is a judgment call:** `VIXCLS` is tagged "Copyrighted: Citation Required". FRED's FAQ says copyrighted series need the owner's permission beyond your own personal use, while allowing use on personal blogs with citation and the notice. I treated this non-commercial portfolio page as personal use and included both. Removing the pair is a small config change if that's wrong.
+- **FRED access:** the terms ban scraping and extraction and describe apps as using the API. This project downloads a small subset as CSV, and moving to the API with a free key would be cleaner before anything commercial.
+- **Stooq rejected:** its terms (section 5.3) don't allow redistribution without consent, so it isn't an option for a public page without written permission.

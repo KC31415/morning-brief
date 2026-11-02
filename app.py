@@ -67,7 +67,7 @@ for inst in main_instruments:
         value = moves.format_last(compared[1], inst["kind"], inst["group"]) if compared else None
         cross_check = moves.cross_check_label(sources[partners[t]], pair_status[t], value, compared[0] if compared else None)
     else:
-        cross_check = "unverified"
+        cross_check = "single source"
     flag = FLAG[by_ticker.get(inst["ticker"], checks.Status.OK)]  # same results as the banner
     if len(g) < 2:
         rows.append({"ticker": t, "group": inst["group"], "name": inst["name"], "last": None, "Change": "n/a",
@@ -116,7 +116,7 @@ for group, g in table.groupby("group", sort=False):
 st.caption("Each change compares a ticker's last two rows, so periods differ by market. "
            "live = that session was still open when fetched; it is not a real-time price.")
 n_single = sum(i["ticker"] not in partners for i in main_instruments)
-st.caption(f"{n_single} of {len(main_instruments)} instruments are single-source (unverified): "
+st.caption(f"{n_single} of {len(main_instruments)} instruments are single source: "
            "passing checks means they look plausible, not that a second source agrees.")
 
 # ---- 3. News brief with sources ----
@@ -152,5 +152,8 @@ with st.expander("How the data checks work"):
 - **Sanity:** today's move is plausible for that instrument, and the price isn't frozen.
 - **Reconciliation:** two sources for the same series agree.
 """)
+st.caption("Second-source data retrieved from FRED, Federal Reserve Bank of St. Louis, which does not endorse this page. "
+           "VIX: Chicago Board Options Exchange, CBOE Volatility Index [VIXCLS]. "
+           "Copyright, 2016, Chicago Board Options Exchange, Inc. Reprinted with permission.")
 st.caption("Built from free public sources, not production market data. "
            "[Source code and build notes](https://github.com/KC31415/morning-brief)")

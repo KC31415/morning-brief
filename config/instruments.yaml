@@ -14,6 +14,8 @@ instruments:
   - {ticker: ^HSI,     name: Hang Seng,            group: Equities,    kind: price, session: hong_kong}
   - {ticker: ^VIX,     name: VIX,                  group: Equities,    kind: price, session: us_vix}
 
+  - {ticker: VIXCLS,   name: VIX (FRED),           group: Equities,    kind: price, source: fred, session: us_vix, reference: true}
+
   # Rates (yields in percent)
   - {ticker: ^IRX,     name: US 3M T-bill rate,    group: Rates,       kind: yield, session: us_bonds}
   - {ticker: ^FVX,     name: US 5Y yield,          group: Rates,       kind: yield, session: us_bonds}
@@ -30,6 +32,10 @@ instruments:
   - {ticker: USDJPY=X, name: USD/JPY,              group: FX,          kind: price, session: futures_fx}
   - {ticker: GBPUSD=X, name: GBP/USD,              group: FX,          kind: price, session: futures_fx}
 
+  # H.10 noon rates, published weekly, so they can be six business days behind
+  - {ticker: DEXJPUS,  name: USD/JPY (FRED),       group: FX,          kind: price, source: fred, session: futures_fx, reference: true, lag_bdays: 6}
+  - {ticker: DEXUSUK,  name: GBP/USD (FRED),       group: FX,          kind: price, source: fred, session: futures_fx, reference: true, lag_bdays: 6}
+
   # Commodities
   - {ticker: CL=F,     name: WTI crude,            group: Commodities, kind: price, session: futures_fx}
   - {ticker: NG=F,     name: Natural gas,          group: Commodities, kind: price, session: futures_fx}
@@ -38,6 +44,8 @@ instruments:
   - {ticker: ZC=F,     name: Corn,                 group: Commodities, kind: price, session: cbot}
   - {ticker: ZW=F,     name: Wheat,                group: Commodities, kind: price, session: cbot}
   - {ticker: ZS=F,     name: Soybeans,             group: Commodities, kind: price, session: cbot}
+  # EIA spot price, published weekly
+  - {ticker: DCOILWTICO, name: WTI spot (FRED),    group: Commodities, kind: price, source: fred, session: futures_fx, reference: true, lag_bdays: 5}
 
 # When each market's daily row is complete. A row fetched before this time on its
 # own date is labeled "live"; afterwards it gets the `complete` label.
@@ -60,6 +68,11 @@ reconcile:
   - {a: ^FVX,     b: DGS5,       warn: 0.05, fail: 0.15}   # (0.041)
   - {a: ^IRX,     b: DTB3,       warn: 0.08, fail: 0.24}   # (0.060)
   - {a: EURUSD=X, b: ECB_EURUSD, warn: 0.01, fail: 0.03}   # (0.0077) ECB fixes near 14:15 CET
+  # These four were measured over about 2 years instead (see build notes).
+  - {a: ^VIX,     b: VIXCLS,     warn: 0.05, fail: 0.50}   # (0 apart from one 2.61 gap the check should catch)
+  - {a: USDJPY=X, b: DEXJPUS,    warn: 4.0,  fail: 12.0}   # (3.83) in yen; FRED is noon New York
+  - {a: GBPUSD=X, b: DEXUSUK,    warn: 0.02, fail: 0.06}   # (0.0182) FRED is noon New York
+  - {a: CL=F,     b: DCOILWTICO, warn: 8.0,  fail: 24.0}   # (7.18) front-month future vs spot: a coarse check
 
 # Official sources only: see docs/build-notes.md for why, before adding a publisher.
 news_feeds:

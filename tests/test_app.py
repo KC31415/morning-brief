@@ -83,7 +83,7 @@ def test_short_history_flag_matches_banner(tmp_path, monkeypatch):
     assert rows[rows["name"] == "US 10Y yield"].iloc[0]["flag"] == "⚠️"
 
 
-def test_table_shows_source_and_marks_single_source_unverified(tmp_path, monkeypatch):
+def test_table_shows_source_and_marks_single_source_rows(tmp_path, monkeypatch):
     db = tmp_path / "brief.db"
     conn = sqlite3.connect(db)
     conn.executescript(storage.SCHEMA)
@@ -101,8 +101,9 @@ def test_table_shows_source_and_marks_single_source_unverified(tmp_path, monkeyp
     fred = yield_series("DGS10", end).iloc[-1]
     assert rows.loc["US 10Y yield", "cross-check"] == f"✓ FRED {fred['close']:.3f} ({fred['date']:%a %m-%d})"
     assert "US 10Y yield (FRED)" not in rows.index
-    assert rows.loc["Gold", "cross-check"] == "unverified"
-    assert any("single-source" in c.value for c in at.caption)
+    assert rows.loc["Gold", "cross-check"] == "single source"
+    assert any("13 of 21 instruments are single source" in c.value for c in at.caption)
+    assert any("Chicago Board Options Exchange" in c.value for c in at.caption)
 
 
 def run_page_with_summary(tmp_path, monkeypatch, summary):

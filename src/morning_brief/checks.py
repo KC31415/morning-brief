@@ -65,7 +65,8 @@ def check_freshness(prices: pd.DataFrame, instruments: list[dict], as_of, cfg: d
         t = inst["ticker"]
         if t not in latest.index:
             continue  # completeness reports missing tickers
-        behind = bdays_between(latest[t], expected) - SOURCE_LAG_BDAYS.get(inst["source"], 0)
+        lag = inst.get("lag_bdays", SOURCE_LAG_BDAYS.get(inst["source"], 0))
+        behind = bdays_between(latest[t], expected) - lag
         behind = max(behind, 0)
         if behind >= cfg["stale_fail_bdays"]:
             status = Status.FAIL
