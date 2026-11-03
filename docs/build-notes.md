@@ -253,3 +253,10 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **Likely cause, not confirmed:** GitHub says scheduled runs can be delayed during heavy load, especially at the top of the hour, and may be dropped. Its scheduler logs aren't visible, and this is one miss.
 - **What changed:** the cron is now `17 11 * * 1-5`. The stale-page banner compares New York dates, so it doesn't depend on the exact time.
 - **Still open:** this hasn't been proven until a scheduled run appears. A run that never starts also can't open a GitHub issue, because `alert.py` runs inside the workflow, so the stale-page banner is the only sign.
+
+## 29. Scheduled runs need a commit from a GitHub account
+
+- **What happened:** Tuesday Nov 3 also produced no scheduled run, even at 11:17 UTC. Manual runs still worked, and GitHub listed no Actions incident.
+- **Likely cause, not confirmed:** every commit that changed the cron was made as an email that isn't on any GitHub account, so GitHub linked no author. GitHub ties a schedule to whoever last changed the cron, and reports say schedules don't start when that person isn't a GitHub user.
+- **What changed:** this repo now commits as the email on my GitHub account. The cron moved to `21 11 * * 1-5` so the commit changes the cron line itself and re-registers the schedule under my account.
+- **Still open:** proven only when a run with the `schedule` event appears.
