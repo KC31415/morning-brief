@@ -6,3 +6,6 @@ __pycache__/
 .streamlit/secrets.toml
 .DS_Store
 data/check_report.json
+.dev.vars
+node_modules/
+public/

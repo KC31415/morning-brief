@@ -11,6 +11,7 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 ROOT = Path(__file__).resolve().parents[1]
+APP = ROOT / "streamlit_app" / "app.py"
 sys.path.insert(0, str(ROOT / "src"))
 
 from morning_brief import checks, config, demo, storage  # noqa: E402
@@ -148,7 +149,7 @@ def inject(at, name, fault):
 
 
 def test_simulation_on_the_page_changes_no_data_or_history(page):
-    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+    at = AppTest.from_file(str(APP), default_timeout=30).run()
     before, banners = fingerprint(page), real_banners(at)
     at = inject(at, "Gold", demo.FAULTS["bad_print"])
     assert not at.exception
@@ -157,7 +158,7 @@ def test_simulation_on_the_page_changes_no_data_or_history(page):
 
 
 def test_page_labels_results_as_simulated_and_shows_the_measurement(page):
-    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+    at = AppTest.from_file(str(APP), default_timeout=30).run()
     assert not [e for e in at.error if "Simulated" in e.value]
     at = inject(at, "Gold", demo.FAULTS["bad_print"])
     text = " ".join(m.value for m in at.markdown)
@@ -166,11 +167,14 @@ def test_page_labels_results_as_simulated_and_shows_the_measurement(page):
 
 
 def test_page_is_honest_when_nothing_catches_the_fault(page):
-    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+    at = AppTest.from_file(str(APP), default_timeout=30).run()
     at = inject(at, "Gold", demo.FAULTS["small_print"])
     assert any("No check caught this" in i.value for i in at.info)
 
 
 def test_invitation_sits_near_the_top(page):
-    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
-    assert any("Try to break it" in m.value and "#try-to-break-it" in m.value for m in at.markdown)
+    at = AppTest.from_file(str(APP), default_timeout=30).run()
+    # Directly under the status banner (and its check details, if any), before every other section
+    labels = [e.label for e in at.expander]
+    demo_at = next(i for i, label in enumerate(labels) if "Try to break it" in label)
+    assert labels[:demo_at] in ([], ["Check details"])

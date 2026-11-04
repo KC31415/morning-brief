@@ -1,0 +1,47 @@
+name: publish site
+
+# Builds the static site from main and publishes it to GitHub Pages.
+# Runs after each refresh (called from refresh.yml, because a push made with the
+# workflow's own token doesn't start other workflows), on any push to main, and by hand.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+  workflow_call: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main   # the latest data, including a refresh committed moments ago
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-lock.txt
+      - name: Build the site
+        run: python scripts/build_site.py --out public
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # One deploy at a time; a newer one waits rather than cancelling a deploy in progress
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

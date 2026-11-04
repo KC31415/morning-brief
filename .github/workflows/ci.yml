@@ -3,14 +3,32 @@ name: tests
 on:
   push:
   pull_request:
+  schedule:
+    # Weekly, so a new release of a dependency that breaks the app shows up here first
+    - cron: "43 13 * * 1"
+  workflow_dispatch: {}
 
 jobs:
   test:
+    name: tests (${{ matrix.deps }} versions)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # latest: the newest versions requirements.txt allows, as Streamlit Cloud installs them
+        # minimum: the oldest Streamlit requirements.txt promises to support
+        deps: [latest, minimum]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r requirements.txt
+      - name: Install
+        run: |
+          if [ "${{ matrix.deps }}" = minimum ]; then
+            pip install -r requirements.txt -c constraints-min.txt
+          else
+            pip install -r requirements.txt
+          fi
+      - run: python -c "import streamlit; print('streamlit', streamlit.__version__)"
       - run: pytest -q

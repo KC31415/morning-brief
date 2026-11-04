@@ -1,0 +1,3 @@
+# The oldest versions requirements.txt allows that the app is tested on.
+# CI installs with:  pip install -r requirements.txt -c constraints-min.txt
+streamlit==1.51.0

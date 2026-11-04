@@ -5,13 +5,14 @@ Run before the open (GitHub Actions does this on a schedule):
 """
 import json
 import logging
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from morning_brief import alerts, checks, ingest, news, schedules, storage, summarize  # noqa: E402
+from morning_brief import alerts, brief, checks, incidents, ingest, news, schedules, storage, summarize  # noqa: E402
 from morning_brief.config import DB_PATH, REPORT_PATH, SUMMARY_PATH, load_config  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -24,6 +25,8 @@ def main() -> int:
     run_at = now.isoformat(timespec="seconds")
 
     conn = storage.connect(DB_PATH)
+    # REFRESH_TRIGGER is set by the workflow; a run on a laptop is "local"
+    storage.log_refresh(conn, run_at, os.getenv("REFRESH_TRIGGER") or "local", os.getenv("GITHUB_RUN_ID"))
     fetched = ingest.fetch_all(cfg["instruments"])
     if not fetched.empty:
         storage.upsert_prices(conn, fetched)
@@ -41,10 +44,20 @@ def main() -> int:
             log.warning("%s %s %s: %s", r.status.name, r.check, r.ticker, r.detail)
     log.info("overall data status: %s", overall.name)
 
+    # One-time download of the real Feb 2026 VIX disagreement the page replays; skipped once saved
+    incidents.ensure()
+
     headlines = news.fetch_headlines(cfg["news_feeds"])
     summary = summarize.summarize(headlines)
     summary.update(run_at=run_at, headlines=headlines)
     SUMMARY_PATH.write_text(json.dumps(summary, indent=2))
+
+    # Today's brief as data, for the static site and its archive. A failure here keeps the
+    # refreshed data; the site then shows the previous brief, and its banner says how old it is.
+    try:
+        log.info("saved today's brief to %s", brief.save(brief.build(conn, cfg, now, summary)))
+    except Exception:
+        log.exception("could not save today's brief for the site")
 
     # Non-zero exit on FAIL so the scheduled job shows red in GitHub Actions
     return 1 if overall == checks.Status.FAIL else 0

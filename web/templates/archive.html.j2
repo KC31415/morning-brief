@@ -1,0 +1,21 @@
+{% extends "base.html.j2" %}
+{% block title %}Morning Brief archive{% endblock %}
+{% block content %}
+{% set status_class = {"OK": "ok", "WARN": "warn", "FAIL": "fail"} %}
+<section class="hero">
+  <h1>Archive</h1>
+  <p class="lede">One brief per New York trading day, saved as it was published. Each keeps its own check results, so a bad-data day stays visible.</p>
+  <p class="updated">Latest: <a href="index.html"><strong>{{ latest.date|long_date }}</strong></a>, last updated {{ latest.as_of }}</p>
+</section>
+<section>
+  <div class="scroll"><table class="data archive">
+    <thead><tr><th>Day</th><th>Checks</th><th>Most unusual move</th></tr></thead>
+    <tbody>{% for a in archive %}
+      <tr><td class="nowrap"><a href="briefs/{{ a.date }}.html">{{ a.date|long_date }}</a></td>
+        <td><span class="pill {{ status_class[a.status] }}">{{ a.status }}</span></td>
+        <td>{{ (a.headline or "").split(". ")[0].replace("Most unusual move: ", "")|md }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  <p class="muted small">If two refreshes ran on the same day, the page keeps the later one. The archive starts on the day this site was first published.</p>
+</section>
+{% endblock %}

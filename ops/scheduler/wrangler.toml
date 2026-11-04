@@ -1,0 +1,13 @@
+# Deploy from this folder:  npx wrangler deploy
+name = "morning-brief-scheduler"
+main = "src/worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+REPO = "KC31415/morning-brief"
+BRANCH = "main"
+
+[triggers]
+# UTC, weekdays. 11:05 is the main attempt (6:05am New York in winter, 7:05am in summer).
+# 11:35 is a retry; the workflow skips it if 11:05 already refreshed.
+crons = ["5 11 * * 1-5", "35 11 * * 1-5"]

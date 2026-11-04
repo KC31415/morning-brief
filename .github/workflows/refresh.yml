@@ -2,47 +2,98 @@ name: pre-open refresh
 
 on:
   schedule:
+    # Backup trigger. The main one is ops/scheduler, which calls workflow_dispatch at 11:05
+    # and 11:35 UTC, because GitHub's own schedule can start hours late or not at all.
     # 11:21 UTC on weekdays = 7:21am New York in summer, 6:21am in winter
     # Off the hour: GitHub warns that top-of-hour schedules can be delayed or dropped
     - cron: "21 11 * * 1-5"
-  workflow_dispatch: {}   # lets you run it by hand from the Actions tab
+  workflow_dispatch:      # the Actions tab's "Run workflow" button, and ops/scheduler
+    inputs:
+      trigger:
+        description: "What started this run. scheduler skips if today's refresh already ran."
+        default: manual
+        type: string
 
 permissions:
   contents: write
   issues: write
 
+# One refresh at a time: a second trigger waits, then sees today's run and skips
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    outputs:
+      ran: ${{ steps.guard.outputs.run }}
+    env:
+      REFRESH_TRIGGER: ${{ github.event_name == 'schedule' && 'github-cron' || inputs.trigger || 'manual' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}   # the branch as it is now, not when this run was queued
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r requirements.txt
+      - run: pip install -r requirements-lock.txt   # exact versions, see that file
+
+      - name: Skip if today's refresh already ran
+        id: guard
+        run: python scripts/should_refresh.py
 
       - name: Fetch, check, summarize
         id: run
+        if: steps.guard.outputs.run == 'true'
         continue-on-error: true   # a FAIL check marks the run red but data is still saved
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/refresh.py
 
       - name: Commit updated data
-        if: always()
+        id: commit
+        if: always() && steps.guard.outputs.run == 'true'
         run: |
           git config user.name "morning-brief-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/brief.db data/summary.json
+          git add data   # brief.db, summary.json and incidents/; check_report.json is gitignored
           git commit -m "Data refresh $(date -u +%Y-%m-%dT%H:%MZ)" || echo "nothing to commit"
+          git pull --rebase --autostash   # in case a code change landed during the run
           git push
 
       - name: Open or close the failing-checks issue
-        if: always()
+        if: always() && steps.guard.outputs.run == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: python scripts/alert.py
 
+      # Dead-man's switch: Healthchecks.io emails if no ping arrives by the deadline,
+      # so a run that never starts is noticed too. /fail alerts at once.
+      - name: Ping the heartbeat monitor
+        if: always() && steps.guard.outputs.run == 'true'
+        env:
+          HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
+        run: |
+          if [ -z "$HEALTHCHECK_URL" ]; then echo "HEALTHCHECK_URL not set, skipping"; exit 0; fi
+          if [ -f data/check_report.json ] && [ "${{ steps.commit.outcome }}" = success ]; then
+            curl -fsS -m 10 --retry 5 "$HEALTHCHECK_URL" > /dev/null
+          else
+            curl -fsS -m 10 --retry 5 "$HEALTHCHECK_URL/fail" > /dev/null
+          fi
+
       - name: Fail the job if any data check failed
         if: steps.run.outcome == 'failure'
         run: exit 1
+
+  # Rebuild and publish the static site with the data just committed. Runs even when a
+  # check failed, because the site shows the failure; skipped when the guard skipped.
+  publish:
+    needs: refresh
+    if: always() && needs.refresh.outputs.ran == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml
+
