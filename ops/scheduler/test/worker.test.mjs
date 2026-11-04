@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { dispatch } from "../src/worker.js";
 
-const env = { REPO: "KC31415/morning-brief", BRANCH: "main", GITHUB_TOKEN: "t" };
+const env = { REPO: "kechunwu/morning-brief", BRANCH: "main", GITHUB_TOKEN: "t" };
 const noWait = async () => {};
 
 function fakeFetch(statuses) {
@@ -19,7 +19,7 @@ function fakeFetch(statuses) {
 test("dispatches refresh.yml on main with trigger=scheduler", async () => {
   const f = fakeFetch([204]);
   assert.equal(await dispatch(env, f.impl, noWait), true);
-  assert.equal(f.calls[0].url, "https://api.github.com/repos/KC31415/morning-brief/actions/workflows/refresh.yml/dispatches");
+  assert.equal(f.calls[0].url, "https://api.github.com/repos/kechunwu/morning-brief/actions/workflows/refresh.yml/dispatches");
   assert.deepEqual(JSON.parse(f.calls[0].init.body), { ref: "main", inputs: { trigger: "scheduler" } });
   assert.equal(f.calls[0].init.headers.Authorization, "Bearer t");
 });

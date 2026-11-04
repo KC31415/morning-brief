@@ -249,4 +249,4 @@ def test_root_entry_point_still_runs_the_app(tmp_path, monkeypatch):
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
     assert not at.exception
     assert at.title[0].value == "Morning Brief"
-    assert any("kc31415.github.io/morning-brief" in c.value for c in at.caption)
+    assert any("kechunwu.github.io/morning-brief" in c.value for c in at.caption)

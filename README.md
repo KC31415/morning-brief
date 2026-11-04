@@ -1,8 +1,8 @@
 # Morning Brief
 
-![tests](https://github.com/KC31415/morning-brief/actions/workflows/ci.yml/badge.svg)
+![tests](https://github.com/kechunwu/morning-brief/actions/workflows/ci.yml/badge.svg)
 
-**Live site:** https://kc31415.github.io/morning-brief/ · [Archive of past briefs](https://kc31415.github.io/morning-brief/archive.html) · [kc31415.github.io](https://kc31415.github.io)
+**Live site:** https://kechunwu.github.io/morning-brief/ · [Archive of past briefs](https://kechunwu.github.io/morning-brief/archive.html) · [kechunwu.github.io](https://kechunwu.github.io)
 
 A static site, rebuilt by GitHub Actions after each weekday pre-open refresh, so it loads instantly with no server to wake up. "Last updated" at the top says exactly when the data was fetched, and the page itself warns when that's stale.
 
@@ -75,7 +75,7 @@ flowchart LR
     pipeline -->|"commit data + data/briefs/DATE.json"| GH["GitHub repo"]
     pipeline -->|ping, or /fail| HC["Healthchecks.io<br/>emails if no ping by ~12:20 UTC"]
     GH --> B["build_site.py<br/>latest + one page per day"]
-    B -->|deploy| P["GitHub Pages<br/>kc31415.github.io/morning-brief"]
+    B -->|deploy| P["GitHub Pages<br/>kechunwu.github.io/morning-brief"]
     GH -.-> APP["Streamlit version<br/>streamlit_app/ (local use)"]
 ```
 

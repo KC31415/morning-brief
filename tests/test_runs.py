@@ -110,7 +110,7 @@ def test_scheduler_targets_this_workflow_with_the_automatic_trigger():
     assert 'const WORKFLOW = "refresh.yml"' in worker and 'trigger: "scheduler"' in worker
     assert "scheduler" in runs.AUTOMATIC and "github-cron" in runs.AUTOMATIC
     toml = tomllib.loads((ROOT / "ops" / "scheduler" / "wrangler.toml").read_text())
-    assert toml["vars"] == {"REPO": "KC31415/morning-brief", "BRANCH": "main"}
+    assert toml["vars"] == {"REPO": "kechunwu/morning-brief", "BRANCH": "main"}
     for cron in toml["triggers"]["crons"]:
         assert re.fullmatch(r"\d+ 11 \* \* 1-5", cron)  # weekdays, before 7:30am New York all year
 
