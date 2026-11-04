@@ -16,7 +16,7 @@ A pre-open cross-asset dashboard that **tells you when its own data is wrong**: 
 
 During my 2026 sales & trading internship I built a morning dashboard that 30+ traders and salespeople used every day. Its one real weakness: when a data source arrived late or incomplete, the page still loaded and looked normal. Nobody can tell a stale number from a fresh one by looking at it.
 
-This is a public rebuild around fixing that. No code or data from the original is used; everything runs on free public sources with reuse terms I've checked.
+This is a public rebuild around fixing that. No code or data from the original is used; everything runs on free public sources (see [Data sources and terms](#data-sources-and-terms)).
 
 ## What a visitor sees
 
@@ -136,6 +136,12 @@ The page changes once each weekday morning, so nothing needs computing when some
 - **Freshness can't be decided at build time.** Whether the data is stale depends on when you read the page, so your browser decides, with a JavaScript port of the same rules the Python uses, tested against the same cases.
 - **The demo can't run Python in the browser.** Every instrument × fault combination is run through the real checks when the site is built, and the page switches between those results.
 - **One build per refresh.** The Streamlit version could recompute on load; here a missed refresh means a stale page, which the banner, the GitHub issue and the Healthchecks.io email are there to catch.
+
+## Data sources and terms
+
+- **FRED** (St. Louis Fed) and the **ECB** publish their series for reuse; the page shows the attribution and the VIX copyright notice FRED asks for.
+- **Yahoo Finance** (via the unofficial `yfinance` library) supplies the main prices, including all 13 single-source instruments. Yahoo's terms allow personal, non-commercial use and restrict redistribution, and this repo commits those prices (`data/brief.db`) and shows them on a public page. It's a non-commercial demo, but it is not a licensed feed. A production version would use a licensed source, or limit the public page to FRED/ECB series.
+- Calendars and news come from official agency pages and RSS feeds (BEA, Census, FOMC, ECB, Treasury), linked from the page.
 
 ## Known limitations
 
