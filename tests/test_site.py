@@ -98,7 +98,7 @@ def test_site_has_latest_archive_and_one_page_per_day(site):
 def test_latest_page_shows_last_updated_and_links_home(site):
     html = (site[0] / "index.html").read_text()
     assert "Last updated: <strong>Thu Nov 05, 6:06 AM ET, pre-open</strong>" in html
-    assert 'href="https://kc31415.github.io"' in html
+    assert 'href="https://kechunwu.github.io"' in html
     assert 'id="timing"' in html  # the browser judges staleness when the page is read
     data = page_data(html)
     assert data["mode"] == "latest" and data["last_fetch"] == "2026-11-05T11:06:00+00:00"

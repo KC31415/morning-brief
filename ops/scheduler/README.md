@@ -19,7 +19,7 @@ A manual "Run workflow" always refreshes.
 
 1. GitHub → your avatar → **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.
 2. Token name: `morning-brief-scheduler`. Expiration: 90 days (put a calendar reminder to rotate it).
-3. Repository access: **Only select repositories** → `KC31415/morning-brief`.
+3. Repository access: **Only select repositories** → `kechunwu/morning-brief`.
 4. Permissions → Repository permissions → **Actions: Read and write**. Leave everything else at No access.
 5. **Generate token** and copy it. It is shown once.
 

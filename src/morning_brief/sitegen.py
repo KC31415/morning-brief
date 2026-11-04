@@ -22,9 +22,9 @@ from morning_brief import brief, demo, history, incidents, runs, schedules, stor
 from morning_brief.config import ROOT
 
 WEB = ROOT / "web"
-SITE_URL = "https://kc31415.github.io/morning-brief/"
-HOME_URL = "https://kc31415.github.io"
-REPO_URL = "https://github.com/KC31415/morning-brief"
+SITE_URL = "https://kechunwu.github.io/morning-brief/"
+HOME_URL = "https://kechunwu.github.io"
+REPO_URL = "https://github.com/kechunwu/morning-brief"
 
 
 # ---- small formatting helpers, used as template filters ----

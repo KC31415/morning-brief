@@ -19,7 +19,7 @@ from morning_brief.moves import is_fetch_stale
 
 log = logging.getLogger(__name__)
 
-USER_AGENT = "morning-brief/1.0 (https://github.com/KC31415/morning-brief)"
+USER_AGENT = "morning-brief/1.0 (https://github.com/kechunwu/morning-brief)"
 KEEP_DAYS_BACK = 7
 
 

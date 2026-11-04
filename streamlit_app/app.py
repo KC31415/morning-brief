@@ -248,5 +248,5 @@ st.caption("Second-source data retrieved from FRED, Federal Reserve Bank of St. 
            "Copyright notice for this series, as FRED requires it to be shown: "
            "Copyright, 2016, Chicago Board Options Exchange, Inc. Reprinted with permission.")
 st.caption("Built from free public sources, not production market data. "
-           "[Source code and build notes](https://github.com/KC31415/morning-brief) · "
-           "Main site: [kc31415.github.io/morning-brief](https://kc31415.github.io/morning-brief/)")
+           "[Source code and build notes](https://github.com/kechunwu/morning-brief) · "
+           "Main site: [kechunwu.github.io/morning-brief](https://kechunwu.github.io/morning-brief/)")
