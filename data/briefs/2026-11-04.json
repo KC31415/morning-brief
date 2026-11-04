@@ -1,9 +1,9 @@
 {
  "version": 1,
  "date": "2026-11-04",
- "run_at": "2026-11-04T20:55:41+00:00",
- "last_fetch": "2026-11-04T20:55:50+00:00",
- "as_of": "Wed Nov 04, 3:55 PM ET, after the US open",
+ "run_at": "2026-11-04T21:03:42+00:00",
+ "last_fetch": "2026-11-04T21:03:48+00:00",
+ "as_of": "Wed Nov 04, 4:03 PM ET, after the US open",
  "status": "OK",
  "banner": "All data checks passed.",
  "problems": [],
@@ -13,7 +13,7 @@
   "cross_checked": 8,
   "single_source": 13
  },
- "headline": "Most unusual move: **Gold +3.30%**, 3.1σ against its own recent volatility. Nothing reaches the 4σ WARN line.",
+ "headline": "Most unusual move: **VIX −19.59%**, 3.1σ against its own recent volatility. Nothing reaches the 4σ WARN line.",
  "tiles": [
   "ES=F",
   "^TNX",
@@ -29,8 +29,8 @@
     {
      "ticker": "ES=F",
      "name": "S&P 500 futures",
-     "last": "7724.00",
-     "change": "+1.68%",
+     "last": "7719.00",
+     "change": "+1.61%",
      "tint": "up",
      "flag": "",
      "cross_check": "single source",
@@ -54,7 +54,7 @@
       7614.0,
       7574.5,
       7596.75,
-      7724.0
+      7719.0
      ],
      "from_to": "Tue 11-03 → Wed 11-04",
      "basis": "live",
@@ -63,8 +63,8 @@
     {
      "ticker": "NQ=F",
      "name": "Nasdaq 100 futures",
-     "last": "28557.75",
-     "change": "+0.89%",
+     "last": "28542.50",
+     "change": "+0.84%",
      "tint": "up",
      "flag": "",
      "cross_check": "single source",
@@ -88,7 +88,7 @@
       28534.0,
       28127.5,
       28305.75,
-      28557.75
+      28542.5
      ],
      "from_to": "Tue 11-03 → Wed 11-04",
      "basis": "live",
@@ -97,8 +97,8 @@
     {
      "ticker": "RTY=F",
      "name": "Russell 2000 futures",
-     "last": "2862.70",
-     "change": "+1.33%",
+     "last": "2865.90",
+     "change": "+1.45%",
      "tint": "up",
      "flag": "",
      "cross_check": "single source",
@@ -122,7 +122,7 @@
       2821.300049,
       2817.800049,
       2825.0,
-      2862.699951
+      2865.899902
      ],
      "from_to": "Tue 11-03 → Wed 11-04",
      "basis": "live",
@@ -233,8 +233,8 @@
     {
      "ticker": "^VIX",
      "name": "VIX",
-     "last": "16.79",
-     "change": "-19.40%",
+     "last": "16.75",
+     "change": "-19.59%",
      "tint": "down",
      "flag": "",
      "cross_check": "✓ FRED 20.83 (Tue 11-03)",
@@ -258,7 +258,7 @@
       19.42,
       21.15,
       20.83,
-      16.790001
+      16.75
      ],
      "from_to": "Tue 11-03 → Wed 11-04",
      "basis": "live",
@@ -379,8 +379,8 @@
     {
      "ticker": "DX-Y.NYB",
      "name": "Dollar index",
-     "last": "101.5190",
-     "change": "-0.34%",
+     "last": "101.5130",
+     "change": "-0.35%",
      "tint": "down",
      "flag": "",
      "cross_check": "single source",
@@ -404,7 +404,7 @@
       101.879997,
       101.75,
       101.870003,
-      101.518997
+      101.513
      ],
      "from_to": "Tue 11-03 → Wed 11-04",
      "basis": "live",
@@ -447,8 +447,8 @@
     {
      "ticker": "USDJPY=X",
      "name": "USD/JPY",
-     "last": "158.4330",
-     "change": "+0.33%",
+     "last": "158.4560",
+     "change": "+0.34%",
      "tint": "up",
      "flag": "",
      "cross_check": "✓ FRED 157.4700 (Fri 10-30)",
@@ -472,7 +472,7 @@
       157.804001,
       157.677002,
       157.914993,
-      158.432999
+      158.455994
      ],
      "from_to": "Tue 11-03 → Wed 11-04",
      "basis": "live",
@@ -481,8 +481,8 @@
     {
      "ticker": "GBPUSD=X",
      "name": "GBP/USD",
-     "last": "1.3473",
-     "change": "+0.47%",
+     "last": "1.3472",
+     "change": "+0.46%",
      "tint": "up",
      "flag": "",
      "cross_check": "✓ FRED 1.3398 (Fri 10-30)",
@@ -506,7 +506,7 @@
       1.337864,
       1.338563,
       1.340986,
-      1.347346
+      1.347201
      ],
      "from_to": "Tue 11-03 → Wed 11-04",
      "basis": "live",
@@ -520,8 +520,8 @@
     {
      "ticker": "CL=F",
      "name": "WTI crude",
-     "last": "88.67",
-     "change": "-7.72%",
+     "last": "88.70",
+     "change": "-7.69%",
      "tint": "down",
      "flag": "",
      "cross_check": "✓ FRED 99.64 (Tue 11-03)",
@@ -545,7 +545,7 @@
       104.120003,
       96.459999,
       96.089996,
-      88.669998
+      88.699997
      ],
      "from_to": "Tue 11-03 → Wed 11-04",
      "basis": "live",
@@ -554,8 +554,8 @@
     {
      "ticker": "NG=F",
      "name": "Natural gas",
-     "last": "2.96",
-     "change": "+2.18%",
+     "last": "2.95",
+     "change": "+1.93%",
      "tint": "up",
      "flag": "",
      "cross_check": "single source",
@@ -579,7 +579,7 @@
       2.898,
       2.856,
       2.895,
-      2.958
+      2.951
      ],
      "from_to": "Tue 11-03 → Wed 11-04",
      "basis": "live",
@@ -588,8 +588,8 @@
     {
      "ticker": "GC=F",
      "name": "Gold",
-     "last": "4070.50",
-     "change": "+3.30%",
+     "last": "4068.90",
+     "change": "+3.26%",
      "tint": "up",
      "flag": "",
      "cross_check": "single source",
@@ -613,7 +613,7 @@
       3898.899902,
       3969.600098,
       3940.399902,
-      4070.5
+      4068.899902
      ],
      "from_to": "Tue 11-03 → Wed 11-04",
      "basis": "live",
@@ -622,8 +622,8 @@
     {
      "ticker": "HG=F",
      "name": "Copper",
-     "last": "6.42",
-     "change": "+0.58%",
+     "last": "6.41",
+     "change": "+0.45%",
      "tint": "up",
      "flag": "",
      "cross_check": "single source",
@@ -647,7 +647,7 @@
       6.4585,
       6.5435,
       6.3785,
-      6.4155
+      6.4075
      ],
      "from_to": "Tue 11-03 → Wed 11-04",
      "basis": "live",
@@ -760,24 +760,24 @@
  ],
  "ranking": [
   {
-   "name": "Gold",
-   "change": "+3.30%",
-   "z": 3.105
+   "name": "VIX",
+   "change": "−19.59%",
+   "z": 3.074
   },
   {
-   "name": "VIX",
-   "change": "−19.40%",
-   "z": 3.044
+   "name": "Gold",
+   "change": "+3.26%",
+   "z": 3.067
   },
   {
    "name": "WTI crude",
-   "change": "−7.72%",
-   "z": 2.664
+   "change": "−7.69%",
+   "z": 2.653
   },
   {
    "name": "S&P 500 futures",
-   "change": "+1.68%",
-   "z": 2.647
+   "change": "+1.61%",
+   "z": 2.543
   },
   {
    "name": "Euro Stoxx 50",
@@ -785,19 +785,19 @@
    "z": 2.469
   },
   {
+   "name": "Russell 2000 futures",
+   "change": "+1.45%",
+   "z": 2.083
+  },
+  {
    "name": "EUR/USD",
    "change": "+0.37%",
    "z": 2.014
   },
   {
-   "name": "Russell 2000 futures",
-   "change": "+1.33%",
-   "z": 1.92
-  },
-  {
    "name": "GBP/USD",
-   "change": "+0.47%",
-   "z": 1.609
+   "change": "+0.46%",
+   "z": 1.572
   },
   {
    "name": "US 5Y yield",
@@ -806,8 +806,8 @@
   },
   {
    "name": "Dollar index",
-   "change": "−0.34%",
-   "z": 1.379
+   "change": "−0.35%",
+   "z": 1.402
   },
   {
    "name": "US 10Y yield",
@@ -816,23 +816,23 @@
   },
   {
    "name": "USD/JPY",
-   "change": "+0.33%",
-   "z": 1.242
+   "change": "+0.34%",
+   "z": 1.297
   },
   {
    "name": "Nasdaq 100 futures",
-   "change": "+0.89%",
-   "z": 0.858
-  },
-  {
-   "name": "Natural gas",
-   "change": "+2.18%",
-   "z": 0.819
+   "change": "+0.84%",
+   "z": 0.806
   },
   {
    "name": "Corn",
    "change": "+0.73%",
    "z": 0.793
+  },
+  {
+   "name": "Natural gas",
+   "change": "+1.93%",
+   "z": 0.728
   },
   {
    "name": "Hang Seng",
@@ -841,8 +841,8 @@
   },
   {
    "name": "Copper",
-   "change": "+0.58%",
-   "z": 0.618
+   "change": "+0.45%",
+   "z": 0.484
   },
   {
    "name": "Nikkei 225",
@@ -1002,7 +1002,7 @@
     ]
    },
    {
-    "bullet": "The U.S. goods and services trade deficit decreased in September 2026, according to the BEA and Census Bureau, falling from $105.7 billion in August.",
+    "bullet": "The U.S. goods and services trade deficit decreased in September 2026, from $105.7 billion in August, according to the BEA and the U.S. Census Bureau.",
     "sources": [
      2
     ]
@@ -1028,5 +1028,5 @@
   ],
   "error": null
  },
- "note": "Morning Brief, data as of Wed Nov 04, 3:55 PM ET, after the US open\nData checks: All data checks passed. (129 checks; 8 of 21 instruments cross-checked)\n\nBiggest moves against their own volatility (WARN at 4σ):\n  Gold +3.30% (3.1σ)\n  VIX −19.40% (3.0σ)\n  WTI crude −7.72% (2.7σ)\n  S&P 500 futures +1.68% (2.6σ)\n  Euro Stoxx 50 +1.97% (2.5σ)\n\nUS rates: 3M T-bill rate 4.025 (+0.0 bp), 5Y yield 4.689 (-5.4 bp), 10Y yield 4.894 (-5.8 bp)\n\nScheduled today:\n  8:30 AM ET U.S. International Trade in Goods and Services, September 2026 (Census)\n  Not covered: BLS (CPI, jobs). Check bls.gov.\n\nChanges cover different periods by market; 'live' means the session was open when fetched, not a real-time price. Free public data, not production market data. https://kc31415.github.io/morning-brief/"
+ "note": "Morning Brief, data as of Wed Nov 04, 4:03 PM ET, after the US open\nData checks: All data checks passed. (129 checks; 8 of 21 instruments cross-checked)\n\nBiggest moves against their own volatility (WARN at 4σ):\n  VIX −19.59% (3.1σ)\n  Gold +3.26% (3.1σ)\n  WTI crude −7.69% (2.7σ)\n  S&P 500 futures +1.61% (2.5σ)\n  Euro Stoxx 50 +1.97% (2.5σ)\n\nUS rates: 3M T-bill rate 4.025 (+0.0 bp), 5Y yield 4.689 (-5.4 bp), 10Y yield 4.894 (-5.8 bp)\n\nScheduled today:\n  8:30 AM ET U.S. International Trade in Goods and Services, September 2026 (Census)\n  Not covered: BLS (CPI, jobs). Check bls.gov.\n\nChanges cover different periods by market; 'live' means the session was open when fetched, not a real-time price. Free public data, not production market data. https://kechunwu.github.io/morning-brief/"
 }
