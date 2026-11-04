@@ -12,7 +12,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from morning_brief import checks, demo, moves, ranking, runs, schedules, storage  # noqa: E402
+from morning_brief import checks, demo, history, incidents, moves, ranking, runs, schedules, storage  # noqa: E402
 from morning_brief.config import DB_PATH, SUMMARY_PATH, load_config  # noqa: E402
 
 st.set_page_config(page_title="Morning Brief", layout="wide")
@@ -66,6 +66,21 @@ if (line := ranking.headline(ranked, cfg["checks"])):
 
 # ---- 2. Try to break it: real checks on a throwaway copy of the data ----
 with st.expander("**Try to break it:** inject a bad print, frozen feed or unit error, and see which check catches it"):
+    st.markdown("**A real one first.** Yahoo and FRED both publish the VIX close, and they normally match exactly.")
+    vix_pair = next((p for p in cfg.get("reconcile", []) if p["a"] == incidents.VIX_FEB_2026["a"]), None)
+    incident = incidents.load()
+    if incident is None or vix_pair is None:
+        st.caption("The real-incident data hasn't been downloaded yet. The next refresh fetches it from Yahoo and FRED.")
+    else:
+        st.markdown(incidents.summary(incident, vix_pair))
+        days = incidents.replay(incident, vix_pair).assign(
+            date=lambda d: d["date"].dt.strftime("%a %b %d"), status=lambda d: d["status"].map(lambda s: checks.Status(s).name))
+        st.dataframe(days[["date", "a", "b", "gap", "status"]].rename(columns={"a": "Yahoo", "b": "FRED"}),
+                     hide_index=True, width="stretch",
+                     column_config={c: st.column_config.NumberColumn(c, format="%.2f") for c in ["Yahoo", "FRED", "gap"]})
+        st.caption("Closes as downloaded from both sources; the status is the check's own output on each day. "
+                   "Two sources can't say which one is wrong, so both rows would be flagged.")
+    st.markdown("**Now try your own.**")
     st.caption("This changes an in-memory copy of the data and reruns the real checks. Results are simulated: "
                "nothing is saved, and the banner above doesn't change.")
     breakable = [i for i in main_instruments if (prices["ticker"] == i["ticker"]).sum() >= 2]
@@ -199,7 +214,22 @@ if SUMMARY_PATH.exists():
 else:
     st.info("No news summary yet.")
 
-# ---- 7. How the page checks itself ----
+# ---- 7. Track record: every logged refresh and what its checks found ----
+st.subheader("Track record")
+check_log, refresh_log = storage.load_check_runs(conn), storage.load_refresh_runs(conn)
+st.markdown(history.headline(check_log, refresh_log))
+found = history.findings(check_log)
+with st.expander(f"What the checks found ({len(found)})"):
+    if found.empty:
+        st.caption("No WARN or FAIL results logged yet.")
+    else:
+        st.dataframe(found, hide_index=True, width="stretch")
+        st.caption("Each row merges the same result across runs. The cause and fix for each is in the build notes.")
+with st.expander("Every refresh"):
+    st.dataframe(history.refreshes(check_log, refresh_log), hide_index=True, width="stretch")
+    st.caption("Runs from before triggers were logged say \"not recorded\". Pre-open means a weekday before 9:30 AM ET.")
+
+# ---- 8. How the page checks itself ----
 st.divider()
 with st.expander("How the data checks work"):
     st.markdown("""

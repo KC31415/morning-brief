@@ -10,7 +10,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from morning_brief import alerts, config, ingest, news, schedules  # noqa: E402
+from morning_brief import alerts, config, incidents, ingest, news, schedules  # noqa: E402
 from morning_brief.checks import CheckResult, Status  # noqa: E402
 
 FAILS = [{"check": "freshness", "ticker": "ZW=F", "detail": "3 sessions behind"}]
@@ -93,6 +93,7 @@ def test_refresh_writes_the_report_and_it_round_trips(tmp_path, monkeypatch):
     monkeypatch.setattr(ingest, "fetch_all", lambda instruments: pd.DataFrame())
     monkeypatch.setattr(news, "fetch_headlines", lambda feeds: [])
     monkeypatch.setattr(schedules, "fetch_all", lambda sources, now: ([], {}))
+    monkeypatch.setattr(incidents, "ensure", lambda: True)  # no network, and no file in the real data/
     main = runpy.run_path(str(ROOT / "scripts" / "refresh.py"), run_name="refresh_test")["main"]
     assert main() == 1  # no data at all, so completeness fails
     reported = alerts.read_report(tmp_path / "report.json")

@@ -55,7 +55,7 @@ jobs:
         run: |
           git config user.name "morning-brief-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/brief.db data/summary.json
+          git add data   # brief.db, summary.json and incidents/; check_report.json is gitignored
           git commit -m "Data refresh $(date -u +%Y-%m-%dT%H:%MZ)" || echo "nothing to commit"
           git pull --rebase --autostash   # in case a code change landed during the run
           git push

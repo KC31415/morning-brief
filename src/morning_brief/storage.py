@@ -112,3 +112,7 @@ def log_refresh(conn: sqlite3.Connection, run_at: str, trigger: str, github_run:
 
 def load_refresh_runs(conn: sqlite3.Connection) -> pd.DataFrame:
     return pd.read_sql_query("SELECT run_at, trigger, github_run FROM refresh_runs ORDER BY run_at", conn)
+
+
+def load_check_runs(conn: sqlite3.Connection) -> pd.DataFrame:
+    return pd.read_sql_query("SELECT run_at, check_name, ticker, status, detail FROM check_runs ORDER BY run_at", conn)

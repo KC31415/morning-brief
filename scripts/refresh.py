@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from morning_brief import alerts, checks, ingest, news, schedules, storage, summarize  # noqa: E402
+from morning_brief import alerts, checks, incidents, ingest, news, schedules, storage, summarize  # noqa: E402
 from morning_brief.config import DB_PATH, REPORT_PATH, SUMMARY_PATH, load_config  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -43,6 +43,9 @@ def main() -> int:
         if r.status != checks.Status.OK:
             log.warning("%s %s %s: %s", r.status.name, r.check, r.ticker, r.detail)
     log.info("overall data status: %s", overall.name)
+
+    # One-time download of the real Feb 2026 VIX disagreement the page replays; skipped once saved
+    incidents.ensure()
 
     headlines = news.fetch_headlines(cfg["news_feeds"])
     summary = summarize.summarize(headlines)
