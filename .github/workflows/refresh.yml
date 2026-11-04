@@ -2,11 +2,16 @@ name: pre-open refresh
 
 on:
   schedule:
-    # Backup trigger. The main one is ops/scheduler, which calls workflow_dispatch at 11:05
-    # and 11:35 UTC, because GitHub's own schedule can start hours late or not at all.
-    # 11:21 UTC on weekdays = 7:21am New York in summer, 6:21am in winter
-    # Off the hour: GitHub warns that top-of-hour schedules can be delayed or dropped
-    - cron: "21 11 * * 1-5"
+    # GitHub's schedule only promises to try: here it has skipped days and once started 7h20m
+    # late. So there are four attempts across the pre-open window; should_refresh.py lets the
+    # first automatic run of the New York day refresh and the rest skip. One on-time attempt
+    # is enough. (ops/scheduler is an optional external trigger if this proves unreliable.)
+    # New York time in winter (EST) / summer (EDT). The open is 14:30 UTC in winter, 13:30 in summer.
+    # Off the hour: GitHub warns that top-of-hour schedules can be delayed or dropped.
+    - cron: "13 10 * * 1-5"   # 5:13am / 6:13am
+    - cron: "21 11 * * 1-5"   # 6:21am / 7:21am
+    - cron: "37 12 * * 1-5"   # 7:37am / 8:37am
+    - cron: "7 13 * * 1-5"    # 8:07am / 9:07am
   workflow_dispatch:      # the Actions tab's "Run workflow" button, and ops/scheduler
     inputs:
       trigger:

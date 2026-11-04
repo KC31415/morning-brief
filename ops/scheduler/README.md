@@ -7,7 +7,7 @@ refresh now has three triggers and a monitor that sits outside GitHub:
 | Piece | When (UTC, weekdays) | What it does |
 |---|---|---|
 | Cloudflare Worker (this folder) | 11:05, retry 11:35 | Calls `workflow_dispatch` on `refresh.yml` with `trigger=scheduler` |
-| GitHub cron in `refresh.yml` | 11:21 | Backup |
+| GitHub cron in `refresh.yml` | 10:13, 11:21, 12:37, 13:07 | Main trigger while the Worker isn't deployed |
 | `scripts/should_refresh.py` | first step of every run | Lets the first automatic run of the New York day refresh; later ones stop |
 | Healthchecks.io | deadline about 12:20 | Emails you if no refresh has pinged by then, or at once if one pinged `/fail` |
 

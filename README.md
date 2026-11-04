@@ -61,8 +61,8 @@ GROUP BY 1, 2 ORDER BY failures DESC;
 ```mermaid
 flowchart LR
     subgraph trigger["Every weekday morning"]
-        W["Cloudflare Worker<br/>11:05 + 11:35 UTC"] -->|workflow_dispatch| G
-        C["GitHub cron 11:21<br/>(backup)"] --> G
+        C["GitHub cron<br/>10:13 · 11:21 · 12:37 · 13:07 UTC"] --> G
+        W["Cloudflare Worker (optional)<br/>11:05 + 11:35 UTC"] -.->|workflow_dispatch| G
         G{"should_refresh.py<br/>already ran today?"}
     end
     G -->|first run only| R
@@ -99,14 +99,15 @@ flowchart LR
 
 ## Reliability
 
-GitHub's scheduled trigger missed the first three weekdays and then started 7h20m late, so the refresh now has three triggers and an outside monitor:
+GitHub's scheduled trigger missed the first three weekdays and then started 7h20m late, so the refresh has several triggers and an outside monitor:
 
-- A **Cloudflare Worker** calls `workflow_dispatch` (which has started every time it's been called here) at 11:05 and 11:35 UTC; GitHub's cron at 11:21 is a backup.
+- **GitHub's cron fires four times** across the pre-open window (10:13, 11:21, 12:37 and 13:07 UTC, all before the open in winter and summer). Only one needs to start on time.
+- An optional **Cloudflare Worker** can also call `workflow_dispatch` at 11:05 and 11:35 UTC, which doesn't depend on GitHub's scheduler. It isn't deployed yet; it's the next step if the track record shows the cron alone isn't enough.
 - A **guard step** lets the first automatic run of the New York day refresh and stops the rest; `concurrency` stops two runs racing on `git push`.
 - **Healthchecks.io** emails if no refresh pings by about 12:20 UTC, so a run that never starts is noticed that morning. A run that fails its checks opens a GitHub issue, which closes after the next clean run.
 - The **page itself** warns when today's pre-open refresh is missing or ran after the open.
 
-The Worker and Healthchecks need a one-time setup with my accounts ([`ops/scheduler/README.md`](ops/scheduler/README.md)); until that's done, GitHub's cron is the only trigger and the page's own banner is the only alarm.
+The Worker and Healthchecks need a one-time setup with my accounts ([`ops/scheduler/README.md`](ops/scheduler/README.md)); until then, GitHub's cron is the only trigger and the page's own banner is the only alarm.
 
 ## LLM summary guardrails
 
