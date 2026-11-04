@@ -20,6 +20,11 @@ CREATE TABLE IF NOT EXISTS check_runs (
     status   TEXT NOT NULL,
     detail   TEXT
 );
+CREATE TABLE IF NOT EXISTS refresh_runs (
+    run_at      TEXT PRIMARY KEY,
+    trigger     TEXT NOT NULL,
+    github_run  TEXT
+);
 CREATE TABLE IF NOT EXISTS schedule_events (
     source      TEXT NOT NULL,
     event       TEXT NOT NULL,
@@ -97,3 +102,13 @@ def load_schedule_events(conn: sqlite3.Connection) -> pd.DataFrame:
 
 def load_schedule_status(conn: sqlite3.Connection) -> pd.DataFrame:
     return pd.read_sql_query("SELECT source, last_attempt, last_success, error FROM schedule_status", conn)
+
+
+def log_refresh(conn: sqlite3.Connection, run_at: str, trigger: str, github_run: str | None = None) -> None:
+    """What started this refresh: scheduler, github-cron, manual or local."""
+    conn.execute("INSERT OR REPLACE INTO refresh_runs VALUES (?, ?, ?)", (run_at, trigger, github_run))
+    conn.commit()
+
+
+def load_refresh_runs(conn: sqlite3.Connection) -> pd.DataFrame:
+    return pd.read_sql_query("SELECT run_at, trigger, github_run FROM refresh_runs ORDER BY run_at", conn)

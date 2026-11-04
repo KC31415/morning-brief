@@ -5,6 +5,7 @@ Run before the open (GitHub Actions does this on a schedule):
 """
 import json
 import logging
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,6 +25,8 @@ def main() -> int:
     run_at = now.isoformat(timespec="seconds")
 
     conn = storage.connect(DB_PATH)
+    # REFRESH_TRIGGER is set by the workflow; a run on a laptop is "local"
+    storage.log_refresh(conn, run_at, os.getenv("REFRESH_TRIGGER") or "local", os.getenv("GITHUB_RUN_ID"))
     fetched = ingest.fetch_all(cfg["instruments"])
     if not fetched.empty:
         storage.upsert_prices(conn, fetched)

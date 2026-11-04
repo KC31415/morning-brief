@@ -105,5 +105,5 @@ def test_workflow_runs_the_alert_even_after_a_failure_and_can_write_issues():
     assert flow["permissions"]["issues"] == "write"
     names = [s.get("name") for s in job["steps"]]
     step = next(s for s in job["steps"] if "scripts/alert.py" in s.get("run", ""))
-    assert step["if"] == "always()" and step["env"]["GH_TOKEN"] == "${{ github.token }}"
+    assert step["if"] == "always() && steps.guard.outputs.run == 'true'" and step["env"]["GH_TOKEN"] == "${{ github.token }}"
     assert names.index(step["name"]) < names.index("Fail the job if any data check failed")
