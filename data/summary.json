@@ -2,24 +2,38 @@
   "model": "claude-haiku-5-5",
   "bullets": [
     {
-      "bullet": "EIA data shows global crude oil refinery inputs fell by 4.8 million barrels per day (b/d), or 6%, in the second quarter of 2026, following the start of conflict in late February in the Middle East, with a modest recovery after that drop.",
+      "bullet": "The ECB wage tracker suggests slightly higher wage growth in the first three quarters of 2027 compared with the full year of 2026.",
       "sources": [
         1
       ]
+    },
+    {
+      "bullet": "The U.S. goods and services trade deficit decreased in September 2026, according to the BEA and the U.S. Census Bureau.",
+      "sources": [
+        2
+      ]
     }
   ],
-  "prompt": "You are preparing a pre-open market brief for a trading desk.\nUsing ONLY the headlines below, write 0 to 5 bullets on what matters for today's open.\nDo not add facts, numbers or context that are not in the headlines.\nEach bullet must cite the ids of the headlines it is based on.\n\nOnly use headlines that report market news: central banks, economic data, company\nresults or deals, government policy, geopolitics, or moves in markets themselves.\nIgnore personal finance, retirement advice, lifestyle and general explainers.\nIf nothing is market-relevant, respond with []. Never pad to reach a number of bullets.\n\nState only what the headlines say. Do not speculate about impact: no phrasing such as\n\"may be relevant\" or \"could affect\" unless the headline itself says it.\n\nRespond with JSON only, in this form:\n[{\"bullet\": \"...\", \"sources\": [1, 4]}]\n\nHeadlines:\n[1] (EIA) Global refinery inputs fell sharply in the second quarter of 2026 before modest recovery - Global crude oil refinery inputs fell by 4.8 million barrels per day (b/d) in the second quarter of 2026 (2Q26), or 6%, following the start of conflict in late February in the Middle East, according t\n",
-  "raw_response": "```json\n[{\"bullet\": \"EIA data shows global crude oil refinery inputs fell by 4.8 million barrels per day (b/d), or 6%, in the second quarter of 2026, following the start of conflict in late February in the Middle East, with a modest recovery after that drop.\", \"sources\": [1]}]\n```",
+  "prompt": "You are preparing a pre-open market brief for a trading desk.\nUsing ONLY the headlines below, write 0 to 5 bullets on what matters for today's open.\nDo not add facts, numbers or context that are not in the headlines.\nEach bullet must cite the ids of the headlines it is based on.\n\nOnly use headlines that report market news: central banks, economic data, company\nresults or deals, government policy, geopolitics, or moves in markets themselves.\nIgnore personal finance, retirement advice, lifestyle and general explainers.\nIf nothing is market-relevant, respond with []. Never pad to reach a number of bullets.\n\nState only what the headlines say. Do not speculate about impact: no phrasing such as\n\"may be relevant\" or \"could affect\" unless the headline itself says it.\n\nRespond with JSON only, in this form:\n[{\"bullet\": \"...\", \"sources\": [1, 4]}]\n\nHeadlines:\n[1] (ECB) ECB wage tracker suggests slightly higher wage growth in first three quarters of 2027 compared with the full year of 2026 - \n[2] (BEA) U.S. International Trade in Goods and Services, September 2026 - <p>The U.S. goods and services trade deficit decreased in September 2026 according to the U.S. Bureau of Economic Analysis and the U.S. Census Bureau. The deficit decreased from $105.7 billion in Augu\n",
+  "raw_response": "[{\"bullet\": \"The ECB wage tracker suggests slightly higher wage growth in the first three quarters of 2027 compared with the full year of 2026.\", \"sources\": [1]}, {\"bullet\": \"The U.S. goods and services trade deficit decreased in September 2026, according to the BEA and the U.S. Census Bureau.\", \"sources\": [2]}]",
   "error": null,
-  "run_at": "2026-11-03T14:48:21+00:00",
+  "run_at": "2026-11-04T16:00:19+00:00",
   "headlines": [
     {
-      "source": "EIA",
-      "title": "Global refinery inputs fell sharply in the second quarter of 2026 before modest recovery",
-      "summary": "Global crude oil refinery inputs fell by 4.8 million barrels per day (b/d) in the second quarter of 2026 (2Q26), or 6%, following the start of conflict in late February in the Middle East, according to data from Kpler. Throughput then increased by 1.8 million b/d in the third quarter, primarily as refiners in the region adjusted to new trade flows.",
-      "link": "https://www.eia.gov/todayinenergy/detail.php?id=68404",
-      "published": "2026-11-03T14:00:00+00:00",
+      "source": "ECB",
+      "title": "ECB wage tracker suggests slightly higher wage growth in first three quarters of 2027 compared with the full year of 2026",
+      "summary": "",
+      "link": "https://www.ecb.europa.eu//press/pr/date/2026/html/ecb.pr261104~caf181d7ac.en.html",
+      "published": "2026-11-04T00:00:00+00:00",
       "id": 1
+    },
+    {
+      "source": "BEA",
+      "title": "U.S. International Trade in Goods and Services, September 2026",
+      "summary": "<p>The U.S. goods and services trade deficit decreased in September 2026 according to the U.S. Bureau of Economic Analysis and the U.S. Census Bureau. The deficit decreased from $105.7 billion in August (revised) to $105.0 billion in September, as exports increased more than imports. The goods deficit decreased $0.7 billion in September to $135.9 billion. The services surplus decreased less than $0.1 billion in September to $30.9 billion.</p>",
+      "link": "https://www.bea.gov/news/2026/us-international-trade-goods-and-services-september-2026",
+      "published": "2026-11-04T13:30:00+00:00",
+      "id": 2
     }
   ]
 }
