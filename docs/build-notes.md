@@ -375,3 +375,7 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **Decisions:** the built site isn't committed (`public/` is gitignored); Pages serves the uploaded artifact. Only one deploy runs at a time, and a newer one waits rather than cancelling a deploy in progress. The build checks out `main` explicitly rather than the commit that started the refresh, so it includes the data commit made moments earlier.
 - **Needs me once:** in the repository settings, Pages → Source must be set to "GitHub Actions". A workflow's token can't turn Pages on.
 - **Not verified on GitHub yet:** I couldn't run actionlint here (the sandbox wouldn't let me run a downloaded binary), and Pages only deploys from `main`. Tests parse both workflows and check the wiring, but the first real proof is the first deploy after merging.
+
+## 41. README and media for the static site
+
+- **What changed:** the README now leads with the GitHub Pages address, the archive and a link back to kc31415.github.io. It explains why the site is static and the three trade-offs that came with it (freshness judged in the browser, the demo precomputed, one build per refresh). The diagram adds the build and deploy steps, the file table lists the new modules and `web/`, and the local instructions build and serve the site. `docs/media/record.cjs` now records from a local build of the static site; `docs/screenshot.png` and `docs/demo.gif` were re-recorded from it with the committed data, so they show real numbers. The GIF injects a +50% bad print and then a frozen feed.

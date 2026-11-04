@@ -2,11 +2,13 @@
 
 ![tests](https://github.com/KC31415/morning-brief/actions/workflows/ci.yml/badge.svg)
 
-**Live app:** https://kechun-morning-brief.streamlit.app
+**Live site:** https://kc31415.github.io/morning-brief/ · [Archive of past briefs](https://kc31415.github.io/morning-brief/archive.html) · [kc31415.github.io](https://kc31415.github.io)
+
+A static site, rebuilt by GitHub Actions after each weekday pre-open refresh, so it loads instantly with no server to wake up. "Last updated" at the top says exactly when the data was fetched, and the page itself warns when that's stale.
 
 A pre-open cross-asset dashboard that **tells you when its own data is wrong**: stale, frozen, implausible, or disagreeing with a second source. Every number shows where it came from, when, and whether anything vouches for it.
 
-![The page catching a simulated +50% bad print in gold](docs/demo.gif)
+![The page catching a simulated +50% bad print and a frozen feed in gold](docs/demo.gif)
 
 ## Why I built this
 
@@ -16,7 +18,7 @@ This is a public rebuild around fixing that. No code or data from the original i
 
 ## What a visitor sees
 
-- **Data as of**, in New York time, labeled pre-open or after the open, with a yellow banner if today's pre-open refresh hasn't run by 8:00 AM ET and a red one if the data is more than a weekday old
+- **Last updated**, in New York time, labeled pre-open or after the open. Your browser checks it against the current time: a yellow banner if today's pre-open refresh hasn't run by 8:00 AM ET, a red one if the data is more than a weekday old
 - **A status banner and what it covers,** e.g. "129 checks · 21 instruments · 8 cross-checked against FRED or the ECB · 13 single source"
 - **The day's most unusual move**, measured against that instrument's own volatility with the sanity check's own number, so it can't disagree with the flags
 - **Try to break it:** first a real disagreement (Yahoo vs FRED on the VIX, Feb 6, 2026) replayed through the real check, then inject your own bad print, frozen feed, stale ticker or unit error into an in-memory copy
@@ -26,6 +28,8 @@ This is a public rebuild around fixing that. No code or data from the original i
 - **What's scheduled today** from official calendars (BEA, Census, FOMC, ECB, Treasury), stating plainly that BLS isn't covered
 - **Overnight news:** 0–5 LLM bullets from official feeds, each linked to the headlines it cites
 - **Track record:** every logged refresh, when it ran, what started it, and every WARN or FAIL the checks have raised
+- **Archive:** one page per day, kept as it was published, with that day's own check results
+- **History chart:** about four months of stored closes for any instrument, interactive
 
 ![screenshot](docs/screenshot.png)
 
@@ -68,21 +72,27 @@ flowchart LR
         S["schedules.py<br/>official calendars"] --> DB
     end
     K -->|any FAIL| I["GitHub issue<br/>(alert.py)"]
-    pipeline -->|commit data| GH["GitHub repo"]
+    pipeline -->|"commit data + data/briefs/DATE.json"| GH["GitHub repo"]
     pipeline -->|ping, or /fail| HC["Healthchecks.io<br/>emails if no ping by ~12:20 UTC"]
-    GH --> APP["Streamlit page<br/>app.py"]
+    GH --> B["build_site.py<br/>latest + one page per day"]
+    B -->|deploy| P["GitHub Pages<br/>kc31415.github.io/morning-brief"]
+    GH -.-> APP["Streamlit version<br/>streamlit_app/ (local use)"]
 ```
 
 | File | Role |
 |---|---|
-| `scripts/refresh.py` | Runs the pipeline once |
+| `scripts/refresh.py` | Runs the pipeline once and saves the day's brief to `data/briefs/` |
+| `scripts/build_site.py`, `src/morning_brief/sitegen.py` | Build the static site from the saved briefs |
+| `src/morning_brief/brief.py` | Everything a day's page shows, as JSON |
+| `web/` | Page templates, CSS, and the browser code: charts, demo picker, freshness check |
 | `streamlit_app/app.py` | The Streamlit version of the page (root `app.py` just runs it) |
 | `src/morning_brief/checks.py` | The six checks; `run_all` is what the page and the demo both call |
 | `src/morning_brief/runs.py` | Pre-open timing, the refresh guard, the as-of label |
 | `src/morning_brief/demo.py`, `incidents.py` | Simulated faults, and the real VIX disagreement replay |
 | `src/morning_brief/history.py` | The track record |
 | `ops/scheduler/` | The Cloudflare Worker trigger and its setup steps |
-| `.github/workflows/refresh.yml` | Weekday refresh, guard, alert and heartbeat |
+| `.github/workflows/refresh.yml` | Weekday refresh, guard, alert and heartbeat, then publishes the site |
+| `.github/workflows/pages.yml` | Builds and deploys the site to GitHub Pages |
 | `.github/workflows/ci.yml` | Tests on the latest versions and on Streamlit 1.51, on every push and weekly |
 
 ## Reliability
@@ -110,9 +120,20 @@ The Worker and Healthchecks need a one-time setup with my accounts ([`ops/schedu
 pip install -r requirements.txt
 export ANTHROPIC_API_KEY=...      # optional; without it you get headlines only
 python scripts/refresh.py
-streamlit run streamlit_app/app.py
+python scripts/build_site.py --out public
+python -m http.server 8000 --directory public     # then open http://localhost:8000
 pytest -q
 ```
+
+The Streamlit version still works for exploring locally: `streamlit run streamlit_app/app.py`.
+
+## Why a static site
+
+The page changes once each weekday morning, so nothing needs computing when someone opens it. A free Streamlit app sleeps after about 12 hours without visitors and shows a wake-up screen; a static page on GitHub Pages loads instantly. The trade-offs, and how they're handled:
+
+- **Freshness can't be decided at build time.** Whether the data is stale depends on when you read the page, so your browser decides, with a JavaScript port of the same rules the Python uses, tested against the same cases.
+- **The demo can't run Python in the browser.** Every instrument × fault combination is run through the real checks when the site is built, and the page switches between those results.
+- **One build per refresh.** The Streamlit version could recompute on load; here a missed refresh means a stale page, which the banner, the GitHub issue and the Healthchecks.io email are there to catch.
 
 ## Known limitations
 
@@ -131,4 +152,4 @@ Next: tune the sanity thresholds on more live history, and find a licensed news 
 
 ## Built with
 
-Python, pandas, SQLite, Streamlit, Altair, GitHub Actions and a Cloudflare Worker, with data from Yahoo Finance (via yfinance), FRED, the ECB and official RSS feeds and calendars. The starter code was generated with Claude. I then used Claude Code to find and fix bugs and build features, one commit and regression test at a time. Every bug, how it was found, what changed and the trade-offs are logged in [docs/build-notes.md](docs/build-notes.md), with an index of the judgment calls at the top.
+Python, pandas, SQLite, Jinja2, Chart.js, GitHub Actions and Pages, Streamlit and a Cloudflare Worker, with data from Yahoo Finance (via yfinance), FRED, the ECB and official RSS feeds and calendars. The starter code was generated with Claude. I then used Claude Code to find and fix bugs and build features, one commit and regression test at a time. Every bug, how it was found, what changed and the trade-offs are logged in [docs/build-notes.md](docs/build-notes.md), with an index of the judgment calls at the top.
