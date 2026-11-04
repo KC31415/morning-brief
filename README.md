@@ -22,6 +22,7 @@ This is a public rebuild around fixing that. No code or data from the original i
 - **Try to break it:** first a real disagreement (Yahoo vs FRED on the VIX, Feb 6, 2026) replayed through the real check, then inject your own bad print, frozen feed, stale ticker or unit error into an in-memory copy
 - **Latest change** for 21 instruments across equities, rates, FX and commodities, each with from → to dates, basis (live, last session or prior US session), source and cross-check
 - **How unusual is today?** every instrument ranked in robust standard deviations
+- **Copy today's note:** a plain-text morning note for chat or email, with the same numbers and caveats as the page, flagged rows first
 - **What's scheduled today** from official calendars (BEA, Census, FOMC, ECB, Treasury), stating plainly that BLS isn't covered
 - **Overnight news:** 0–5 LLM bullets from official feeds, each linked to the headlines it cites
 - **Track record:** every logged refresh, when it ran, what started it, and every WARN or FAIL the checks have raised
