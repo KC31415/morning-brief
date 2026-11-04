@@ -260,3 +260,10 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **Likely cause, not confirmed:** every commit that changed the cron was made as an email that isn't on any GitHub account, so GitHub linked no author. GitHub ties a schedule to whoever last changed the cron, and reports say schedules don't start when that person isn't a GitHub user.
 - **What changed:** this repo now commits as the email on my GitHub account. The cron moved to `21 11 * * 1-5` so the commit changes the cron line itself and re-registers the schedule under my account.
 - **Still open:** proven only when a run with the `schedule` event appears.
+
+## 30. Testing the minimum Streamlit in CI, and pinning the refresh
+
+- **What was missing:** `requirements.txt` promises Streamlit 1.51 or later, but CI only ever installed the newest release, so the floor was checked by hand when I remembered. The scheduled refresh also installed whatever was newest that morning, so a new release of yfinance or pandas could change or break a run with no code change.
+- **How it was found:** reviewing the repo as an engineer would, and noticing that only `>=` bounds stood between a dependency release and the 6am run.
+- **What changed:** `ci.yml` runs the suite twice, on the latest versions and with `constraints-min.txt` (Streamlit 1.51.0), and once a week even without a push, so a breaking release shows up in CI before it reaches the app. The refresh installs `requirements-lock.txt`, exact versions frozen from a passing Python 3.12 environment. New tests check that the lock covers every requirement at or above its floor, that the minimum constraint matches the floor, and that both workflows use the right file.
+- **Trade-off:** the lock goes stale and has to be regenerated on purpose (the command is in its header). Streamlit Cloud still installs from `requirements.txt`, so the deployed page can pick up a new release when it restarts; the weekly CI run is the early warning for that.
