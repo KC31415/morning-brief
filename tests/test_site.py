@@ -160,3 +160,34 @@ def test_browser_timing_matches_python():
     r = subprocess.run(["node", "--test", "web/test/timing.test.js"], cwd=ROOT, capture_output=True, text=True,
                        env={**os.environ, "NODE_NO_WARNINGS": "1"})
     assert r.returncode == 0, r.stdout + r.stderr
+
+
+def _yaml(name):
+    import yaml
+    return yaml.safe_load((ROOT / ".github" / "workflows" / name).read_text())
+
+
+def test_pages_workflow_builds_from_main_and_deploys():
+    flow = _yaml("pages.yml")
+    on = flow[True]  # PyYAML reads `on` as True
+    assert on["push"] == {"branches": ["main"]} and "workflow_call" in on and "workflow_dispatch" in on
+    assert flow["permissions"] == {"contents": "read", "pages": "write", "id-token": "write"}
+    build = flow["jobs"]["build"]["steps"]
+    assert build[0]["with"]["ref"] == "main"
+    assert any(s.get("run") == "python scripts/build_site.py --out public" for s in build)
+    assert any(s.get("uses", "").startswith("actions/upload-pages-artifact") and s["with"]["path"] == "public" for s in build)
+    deploy = flow["jobs"]["deploy"]
+    assert deploy["environment"]["name"] == "github-pages" and deploy["concurrency"]["group"] == "pages"
+
+
+def test_refresh_publishes_the_site_after_it_ran():
+    flow = _yaml("refresh.yml")
+    assert flow["jobs"]["refresh"]["outputs"]["ran"] == "${{ steps.guard.outputs.run }}"
+    publish = flow["jobs"]["publish"]
+    assert publish["needs"] == "refresh" and publish["uses"] == "./.github/workflows/pages.yml"
+    assert publish["if"] == "always() && needs.refresh.outputs.ran == 'true'"
+    assert publish["permissions"] == {"contents": "read", "pages": "write", "id-token": "write"}
+
+
+def test_built_site_is_not_committed():
+    assert "public/" in (ROOT / ".gitignore").read_text().splitlines()

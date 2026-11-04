@@ -26,6 +26,8 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    outputs:
+      ran: ${{ steps.guard.outputs.run }}
     env:
       REFRESH_TRIGGER: ${{ github.event_name == 'schedule' && 'github-cron' || inputs.trigger || 'manual' }}
     steps:
@@ -83,3 +85,15 @@ jobs:
       - name: Fail the job if any data check failed
         if: steps.run.outcome == 'failure'
         run: exit 1
+
+  # Rebuild and publish the static site with the data just committed. Runs even when a
+  # check failed, because the site shows the failure; skipped when the guard skipped.
+  publish:
+    needs: refresh
+    if: always() && needs.refresh.outputs.ran == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml
+
