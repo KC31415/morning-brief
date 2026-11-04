@@ -280,3 +280,11 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **Token:** the Worker uses a fine-grained token for this one repository with only Actions read and write, a 90-day expiry, stored as an encrypted Cloudflare secret. When it expires the Worker fails, the GitHub cron still runs, and if both miss, Healthchecks emails.
 - **Tests:** the guard's decisions, including that "today" is the New York date; that the guard only reads the database; that every step after the guard is gated on it; that the cron line hasn't changed; and the Worker's own Node tests (dispatch body, retry on 5xx, stop at once on a bad token), which pytest runs when Node is installed.
 - **Still on me:** creating the token, deploying the Worker and the Healthchecks check. Steps are in `ops/scheduler/README.md`.
+
+## 32. Saying when the data was taken, relative to the open
+
+- **What was wrong:** the header said "Cross-asset moves before the US open" above data fetched at 1:42pm New York on Nov 4, with futures labeled "live". The only timing alarm was the stale banner, which waits until more than a full weekday has passed, so a missed morning looked normal all day.
+- **How it was found:** reviewing the page as a visitor would, the day the scheduled run arrived 7h20m late.
+- **What changed:** the header now reads "Data as of Wed Nov 04, 1:42 PM ET, after the US open" (or "pre-open", or "weekend"). New `runs.refresh_timing` adds a yellow banner once a weekday passes 8:00am New York with no refresh that day, naming the data's actual time, and an info note when today's refresh ran after 9:30am, saying moves marked live are mid-session. The red stale banner is unchanged and takes priority.
+- **Decisions:** times are New York, because that's the market the page is for, and the tests cover both standard and daylight time. 8:00am leaves about 75 minutes after the latest trigger (11:35 UTC is 6:35am in winter) and 90 minutes before the open. Weekdays include holidays, matching the schedule. A refresh on a holiday is harmless, and treating one as missed would be wrong.
+- **Knock-on fix:** three page tests compared the full list of info boxes, so they would have passed or failed depending on the time of day they ran. They now ignore the timing note.

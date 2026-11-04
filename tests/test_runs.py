@@ -120,3 +120,48 @@ def test_scheduler_worker_unit_tests():
     r = subprocess.run(["node", "--test", "ops/scheduler/test/worker.test.mjs"], cwd=ROOT,
                        capture_output=True, text=True, env={**os.environ, "NODE_NO_WARNINGS": "1"})
     assert r.returncode == 0, r.stdout + r.stderr
+
+
+# ---- Is the page showing today's pre-open data? ----
+# Nov 5 2026 is a Thursday; New York is UTC-5 after Nov 1
+
+def ts(s):
+    return pd.Timestamp(s, tz="UTC")
+
+
+def test_on_time_pre_open_refresh_is_quiet():
+    assert runs.refresh_timing("2026-11-05T11:06:00+00:00", ts("2026-11-05 15:00")).level == "ok"
+
+
+def test_missing_refresh_warns_once_it_was_expected():
+    # 8:00am New York is 13:00 UTC in winter
+    before = runs.refresh_timing("2026-11-04T11:06:00+00:00", ts("2026-11-05 12:59"))
+    after = runs.refresh_timing("2026-11-04T11:06:00+00:00", ts("2026-11-05 13:00"))
+    assert before.level == "ok"
+    assert after.level == "warn" and "hasn't run" in after.message and "Wed Nov 04, 6:06 AM ET" in after.message
+
+
+def test_refresh_after_the_open_is_labeled():
+    t = runs.refresh_timing("2026-11-04T18:42:00+00:00", ts("2026-11-04 19:00"))
+    assert t.level == "info" and "1:42 PM ET, after the US open" in t.message
+
+
+def test_weekend_is_quiet():
+    assert runs.refresh_timing("2026-11-06T11:06:00+00:00", ts("2026-11-07 15:00")).level == "ok"
+
+
+def test_no_refresh_ever_warns():
+    assert runs.refresh_timing(None, ts("2026-11-05 15:00")).level == "warn"
+
+
+def test_summer_uses_new_york_daylight_time():
+    # Jul 1 2026: 8:00am New York is 12:00 UTC
+    assert runs.refresh_timing("2026-06-30T11:06:00+00:00", ts("2026-07-01 12:01")).level == "warn"
+    assert runs.refresh_timing("2026-07-01T11:06:00+00:00", ts("2026-07-01 12:01")).level == "ok"
+
+
+def test_as_of_label_says_when_relative_to_the_open():
+    assert runs.as_of_label("2026-11-05T11:06:00+00:00") == "Thu Nov 05, 6:06 AM ET, pre-open"
+    assert runs.as_of_label("2026-11-04T18:42:00+00:00") == "Wed Nov 04, 1:42 PM ET, after the US open"
+    assert runs.as_of_label("2026-11-07T15:00:00+00:00") == "Sat Nov 07, 10:00 AM ET, weekend"
+    assert runs.as_of_label(None) == "never"

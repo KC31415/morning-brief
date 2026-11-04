@@ -12,7 +12,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from morning_brief import checks, demo, moves, ranking, schedules, storage  # noqa: E402
+from morning_brief import checks, demo, moves, ranking, runs, schedules, storage  # noqa: E402
 from morning_brief.config import DB_PATH, SUMMARY_PATH, load_config  # noqa: E402
 
 st.set_page_config(page_title="Morning Brief", layout="wide")
@@ -31,12 +31,19 @@ partners = checks.cross_checks(cfg.get("reconcile", []))
 
 st.title("Morning Brief")
 last_fetch = prices["fetched_at"].max() if not prices.empty else None
-st.caption(f"Cross-asset moves before the US open, with checks that flag bad data.  \n"
-           f"Data last fetched {moves.format_fetched(last_fetch)}")
+st.caption(f"Cross-asset moves for the US open, checked before they're shown.  \n"
+           f"Data as of {runs.as_of_label(last_fetch)}")
 
 # ---- 1. Data status banner: the first thing anyone sees ----
-if moves.is_fetch_stale(last_fetch, pd.Timestamp.now(tz="UTC")):
+now = pd.Timestamp.now(tz="UTC")
+if moves.is_fetch_stale(last_fetch, now):
     st.error(f"Data is stale: last updated {moves.format_fetched(last_fetch)}. The refresh may have stopped running.")
+else:
+    timing = runs.refresh_timing(last_fetch, now)
+    if timing.level == "warn":
+        st.warning(timing.message)
+    elif timing.level == "info":
+        st.info(timing.message)
 problems = [r for r in results if r.status != checks.Status.OK]
 overall, banner = moves.banner_message(results)
 {checks.Status.OK: st.success, checks.Status.WARN: st.warning, checks.Status.FAIL: st.error}[overall](banner)

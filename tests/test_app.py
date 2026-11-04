@@ -105,6 +105,7 @@ def test_table_shows_source_and_marks_single_source_rows(tmp_path, monkeypatch):
     assert rows.loc["Gold", "cross-check"] == "single source"
     assert any("13 of 21 instruments are single source" in c.value for c in at.caption)
     assert any("Chicago Board Options Exchange" in c.value for c in at.caption)
+    assert any("Data as of " in c.value and " ET, " in c.value for c in at.caption)
 
 
 def run_page_with_summary(tmp_path, monkeypatch, summary):
@@ -121,15 +122,20 @@ def run_page_with_summary(tmp_path, monkeypatch, summary):
     return AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
 
 
+def news_notes(at):
+    """Info boxes other than the refresh-timing note, which depends on when the test runs."""
+    return [i.value for i in at.info if not i.value.startswith("Today's refresh")]
+
+
 def test_empty_brief_says_no_market_moving_headlines(tmp_path, monkeypatch):
     at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": None, "headlines": []})
-    assert [i.value for i in at.info] == ["No market-moving headlines overnight"]
+    assert news_notes(at) == ["No market-moving headlines overnight"]
 
 
 def test_failed_summary_shows_its_error_not_the_empty_message(tmp_path, monkeypatch):
     error = "summary failed: every bullet had invalid citations"
     at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": error, "headlines": []})
-    assert [i.value for i in at.info] == [error]
+    assert news_notes(at) == [error]
 
 
 def test_dollar_amounts_do_not_render_as_math(tmp_path, monkeypatch):
@@ -186,7 +192,7 @@ def test_showcase_page_has_key_market_tiles_and_trend_column(tmp_path, monkeypat
 
 def test_no_headlines_reads_as_a_sentence(tmp_path, monkeypatch):
     at = run_page_with_summary(tmp_path, monkeypatch, {"model": "m", "bullets": [], "error": "no headlines", "headlines": []})
-    assert [i.value for i in at.info] == ["No new official releases since the previous US close."]
+    assert news_notes(at) == ["No new official releases since the previous US close."]
 
 
 def test_tile_for_flagged_market_shows_its_flag(tmp_path, monkeypatch):
