@@ -45,6 +45,8 @@ def build(conn, cfg: dict, now: datetime, summary: dict | None) -> dict:
     table = pd.DataFrame([moves.build_row(i, prices, results, cfg) for i in main])
     ranked, too_short = ranking.unusual_moves(prices, cfg)
     n_cross = sum(i["ticker"] in partners for i in main)
+    coarse = moves.coarse_tickers(cfg.get("reconcile", []))
+    n_coarse = sum(i["ticker"] in partners and i["ticker"] in coarse for i in main)
     overall, banner = moves.banner_message(results)
 
     groups = []
@@ -62,7 +64,7 @@ def build(conn, cfg: dict, now: datetime, summary: dict | None) -> dict:
         "banner": banner,
         "problems": [{"status": r.status.name, "check": r.check, "ticker": r.ticker, "detail": r.detail}
                      for r in sorted(results, key=lambda r: -r.status) if r.status != checks.Status.OK],
-        "coverage": {"checks": len(results), "instruments": len(main), "cross_checked": n_cross,
+        "coverage": {"checks": len(results), "instruments": len(main), "cross_checked": n_cross, "coarse": n_coarse,
                      "single_source": len(main) - n_cross},
         "headline": ranking.headline(ranked, cfg["checks"]),
         "tiles": [t for t in KEY_MARKETS if t in by_ticker and by_ticker[t]["last"] is not None],

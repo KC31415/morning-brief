@@ -65,6 +65,8 @@ sessions:
 
 # Pairs of series that measure the same thing, used to cross-check sources.
 # tolerance is in the series' units (percentage points for yields: 0.05 = 5bp).
+# coarse: true when the warn line is above ~2% of the price (different instruments or fixing times),
+# so only a gross error can fail. The page shows these with "≈" instead of "✓".
 # The sources snapshot at different times, so warn sits just above the largest gap
 # seen over about 120 sessions (in brackets), and fail at about 3x warn.
 reconcile:
@@ -74,9 +76,9 @@ reconcile:
   - {a: EURUSD=X, b: ECB_EURUSD, warn: 0.01, fail: 0.03}   # (0.0077) ECB fixes near 14:15 CET
   # These four were measured over about 2 years instead (see build notes).
   - {a: ^VIX,     b: VIXCLS,     warn: 0.05, fail: 0.50}   # (0 apart from one 2.61 gap the check should catch)
-  - {a: USDJPY=X, b: DEXJPUS,    warn: 4.0,  fail: 12.0}   # (3.83) in yen; FRED is noon New York
+  - {a: USDJPY=X, b: DEXJPUS,    warn: 4.0,  fail: 12.0, coarse: true}   # (3.83) in yen; FRED is noon New York
   - {a: GBPUSD=X, b: DEXUSUK,    warn: 0.02, fail: 0.06}   # (0.0182) FRED is noon New York
-  - {a: CL=F,     b: DCOILWTICO, warn: 8.0,  fail: 24.0}   # (7.18) front-month future vs spot: a coarse check
+  - {a: CL=F,     b: DCOILWTICO, warn: 8.0,  fail: 24.0, coarse: true}   # (7.18) front-month future vs spot: a coarse check
 
 # Official sources only: see docs/build-notes.md for why, before adding a publisher.
 news_feeds:

@@ -118,3 +118,14 @@ def test_cross_check_label_can_show_the_compared_value_and_date():
 ])
 def test_fetch_stale_after_more_than_one_business_day(fetched, now, stale):
     assert moves.is_fetch_stale(fetched, pd.Timestamp(now, tz="UTC")) is stale
+
+
+def test_coarse_cross_check_passes_with_approx_not_tick():
+    label = moves.cross_check_label("fred", Status.OK, "99.64", pd.Timestamp("2026-11-03"), coarse=True)
+    assert label.startswith("≈ FRED 99.64") and label.endswith(", coarse")
+    assert moves.cross_check_label("fred", Status.WARN, coarse=True).startswith("⚠")
+
+
+def test_coarse_tickers_reads_both_sides_of_a_pair():
+    pairs = [{"a": "CL=F", "b": "DCOILWTICO", "coarse": True}, {"a": "^VIX", "b": "VIXCLS"}]
+    assert moves.coarse_tickers(pairs) == {"CL=F", "DCOILWTICO"}

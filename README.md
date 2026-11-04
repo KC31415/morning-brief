@@ -4,7 +4,9 @@
 
 **Live site:** https://kechunwu.github.io/morning-brief/ · [Archive of past briefs](https://kechunwu.github.io/morning-brief/archive.html) · [kechunwu.github.io](https://kechunwu.github.io)
 
-A static site, rebuilt by GitHub Actions after each weekday pre-open refresh, so it loads instantly with no server to wake up. "Last updated" at the top says exactly when the data was fetched, and the page itself warns when that's stale.
+A static site, rebuilt by GitHub Actions after each refresh, so it loads instantly with no server to wake up. "Last updated" at the top says exactly when the data was fetched, and the page itself warns when that's stale.
+
+**Schedule status, honestly:** the refresh is meant to run before the US open each weekday. GitHub's own scheduler has so far started it hours late or not at all, and the external trigger that fixes this ([`ops/scheduler`](ops/scheduler/README.md)) is written but not yet deployed. Until it is, most refreshes have been run by hand after the open; the page's **Track record** section lists when every refresh actually ran.
 
 A pre-open cross-asset dashboard that **tells you when its own data is wrong**: stale, frozen, implausible, or disagreeing with a second source. Every number shows where it came from, when, and whether anything vouches for it.
 

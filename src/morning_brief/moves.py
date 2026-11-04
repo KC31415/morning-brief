@@ -24,9 +24,17 @@ def change_basis(row_date: pd.Timestamp, fetched_at: str, session: dict) -> str:
 
 
 def cross_check_label(partner_source: str, status: Status, value: str | None = None,
-                      date: pd.Timestamp | None = None) -> str:
-    label = f"{CHECK_MARKS[status]} {SOURCE_LABELS[partner_source]}"
-    return f"{label} {value} ({date:%a %m-%d})" if value is not None else label
+                      date: pd.Timestamp | None = None, coarse: bool = False) -> str:
+    """A coarse pair (tolerance wide enough that only a gross error fails) passes with "≈", not "✓"."""
+    mark = "≈" if coarse and status == Status.OK else CHECK_MARKS[status]
+    label = f"{mark} {SOURCE_LABELS[partner_source]}"
+    label = f"{label} {value} ({date:%a %m-%d})" if value is not None else label
+    return f"{label}, coarse" if coarse else label
+
+
+def coarse_tickers(pairs: list[dict]) -> set[str]:
+    """Tickers whose second-source comparison is marked `coarse` in the config."""
+    return {t for p in pairs if p.get("coarse") for t in (p["a"], p["b"])}
 
 
 def change_tint(change: str) -> str:
@@ -101,7 +109,8 @@ def build_row(inst: dict, prices: pd.DataFrame, results: list, config: dict) -> 
         compared = checks.compared_value(prices, t, partners[t])
         value = format_last(compared[1], inst["kind"], inst["group"]) if compared else None
         status = checks.cross_check_status(results, pairs)[t]
-        cross_check = cross_check_label(sources[partners[t]], status, value, compared[0] if compared else None)
+        cross_check = cross_check_label(sources[partners[t]], status, value, compared[0] if compared else None,
+                                        coarse=t in coarse_tickers(pairs))
     else:
         cross_check = "single source"
     row = {"ticker": t, "group": inst["group"], "name": inst["name"], "last": None, "Change": "n/a",

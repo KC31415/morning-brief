@@ -25,7 +25,7 @@
     </table></div>
   </details>
   {% endif %}
-  <p class="coverage">{{ s.coverage.checks }} checks · {{ s.coverage.instruments }} instruments · {{ s.coverage.cross_checked }} cross-checked against FRED or the ECB · {{ s.coverage.single_source }} single source</p>
+  <p class="coverage">{{ s.coverage.checks }} checks · {{ s.coverage.instruments }} instruments · {{ s.coverage.cross_checked }} cross-checked against FRED or the ECB{% if s.coverage.coarse %} ({{ s.coverage.coarse }} only coarsely, marked ≈){% endif %} · {{ s.coverage.single_source }} single source</p>
   {% if s.headline %}<p class="headline">{{ s.headline|md }}</p>{% endif %}
 </section>
 
