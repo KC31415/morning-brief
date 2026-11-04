@@ -2,22 +2,22 @@
   "model": "claude-haiku-5-5",
   "bullets": [
     {
-      "bullet": "ECB wage tracker suggests slightly higher wage growth in the first three quarters of 2027 compared with the full year of 2026.",
+      "bullet": "The ECB wage tracker suggests slightly higher wage growth in the first three quarters of 2027 compared with the full year of 2026.",
       "sources": [
         1
       ]
     },
     {
-      "bullet": "The U.S. goods and services trade deficit decreased in September 2026, from $105.7 billion in August, according to the BEA and Census Bureau.",
+      "bullet": "The U.S. goods and services trade deficit decreased in September 2026, according to the BEA and Census Bureau, falling from $105.7 billion in August.",
       "sources": [
         2
       ]
     }
   ],
   "prompt": "You are preparing a pre-open market brief for a trading desk.\nUsing ONLY the headlines below, write 0 to 5 bullets on what matters for today's open.\nDo not add facts, numbers or context that are not in the headlines.\nEach bullet must cite the ids of the headlines it is based on.\n\nOnly use headlines that report market news: central banks, economic data, company\nresults or deals, government policy, geopolitics, or moves in markets themselves.\nIgnore personal finance, retirement advice, lifestyle and general explainers.\nIf nothing is market-relevant, respond with []. Never pad to reach a number of bullets.\n\nState only what the headlines say. Do not speculate about impact: no phrasing such as\n\"may be relevant\" or \"could affect\" unless the headline itself says it.\n\nRespond with JSON only, in this form:\n[{\"bullet\": \"...\", \"sources\": [1, 4]}]\n\nHeadlines:\n[1] (ECB) ECB wage tracker suggests slightly higher wage growth in first three quarters of 2027 compared with the full year of 2026 - \n[2] (BEA) U.S. International Trade in Goods and Services, September 2026 - <p>The U.S. goods and services trade deficit decreased in September 2026 according to the U.S. Bureau of Economic Analysis and the U.S. Census Bureau. The deficit decreased from $105.7 billion in Augu\n",
-  "raw_response": "[{\"bullet\": \"ECB wage tracker suggests slightly higher wage growth in the first three quarters of 2027 compared with the full year of 2026.\", \"sources\": [1]}, {\"bullet\": \"The U.S. goods and services trade deficit decreased in September 2026, from $105.7 billion in August, according to the BEA and Census Bureau.\", \"sources\": [2]}]",
+  "raw_response": "[{\"bullet\": \"The ECB wage tracker suggests slightly higher wage growth in the first three quarters of 2027 compared with the full year of 2026.\", \"sources\": [1]}, {\"bullet\": \"The U.S. goods and services trade deficit decreased in September 2026, according to the BEA and Census Bureau, falling from $105.7 billion in August.\", \"sources\": [2]}]",
   "error": null,
-  "run_at": "2026-11-04T18:42:24+00:00",
+  "run_at": "2026-11-04T20:55:41+00:00",
   "headlines": [
     {
       "source": "ECB",
