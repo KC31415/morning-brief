@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Morning Brief{% endblock %}</title>
+<meta name="description" content="A pre-open cross-asset market dashboard that checks its own data: stale, frozen, implausible or disagreeing with a second source.">
+<meta property="og:title" content="{{ self.title() }}">
+<meta property="og:description" content="Cross-asset moves for the US open, checked before they're shown.">
+<meta property="og:url" content="{{ site_url }}">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231f5fbf'/><path d='M6 22l6-7 5 4 9-11' stroke='white' stroke-width='3' fill='none'/></svg>">
+<link rel="stylesheet" href="{{ base }}assets/style.css">
+</head>
+<body>
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="{{ base }}index.html">Morning Brief</a>
+    <nav>
+      <a href="{{ base }}index.html">Latest</a>
+      <a href="{{ base }}archive.html">Archive</a>
+      <a href="{{ repo_url }}">Code</a>
+      <a href="{{ home_url }}">kc31415.github.io</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap">
+{% block content %}{% endblock %}
+</main>
+<footer class="site">
+  <div class="wrap">
+    <p>Second-source data retrieved from FRED, Federal Reserve Bank of St. Louis, which does not endorse this page.
+      VIX: Chicago Board Options Exchange, CBOE Volatility Index [VIXCLS]. Copyright notice for this series, as FRED requires it to be shown:
+      Copyright, 2016, Chicago Board Options Exchange, Inc. Reprinted with permission.</p>
+    <p>Built from free public sources, not production market data. Charts by Chart.js (MIT).
+      <a href="{{ repo_url }}">Source code and build notes</a> · <a href="{{ home_url }}">Kechun Wu, kc31415.github.io</a></p>
+  </div>
+</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>

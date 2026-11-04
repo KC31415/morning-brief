@@ -12,7 +12,7 @@ RATES = ["^IRX", "^FVX", "^TNX"]
 
 
 def build(table: pd.DataFrame, ranked: pd.DataFrame, results: list, last_fetch, view, n_cross: int,
-          cfg: dict, url: str = "https://kechun-morning-brief.streamlit.app") -> str:
+          cfg: dict, url: str = "https://kc31415.github.io/morning-brief/") -> str:
     _, banner = moves.banner_message(results)
     lines = [f"Morning Brief, data as of {runs.as_of_label(last_fetch)}",
              f"Data checks: {banner} ({moves.count_label(len(results), "check", "checks")}; {n_cross} of {len(table)} instruments cross-checked)"]

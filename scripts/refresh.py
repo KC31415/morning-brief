@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from morning_brief import alerts, checks, incidents, ingest, news, schedules, storage, summarize  # noqa: E402
+from morning_brief import alerts, brief, checks, incidents, ingest, news, schedules, storage, summarize  # noqa: E402
 from morning_brief.config import DB_PATH, REPORT_PATH, SUMMARY_PATH, load_config  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -51,6 +51,13 @@ def main() -> int:
     summary = summarize.summarize(headlines)
     summary.update(run_at=run_at, headlines=headlines)
     SUMMARY_PATH.write_text(json.dumps(summary, indent=2))
+
+    # Today's brief as data, for the static site and its archive. A failure here keeps the
+    # refreshed data; the site then shows the previous brief, and its banner says how old it is.
+    try:
+        log.info("saved today's brief to %s", brief.save(brief.build(conn, cfg, now, summary)))
+    except Exception:
+        log.exception("could not save today's brief for the site")
 
     # Non-zero exit on FAIL so the scheduled job shows red in GitHub Actions
     return 1 if overall == checks.Status.FAIL else 0

@@ -50,6 +50,17 @@ def connect(path: Path) -> sqlite3.Connection:
     return conn
 
 
+def connect_readonly(path: Path) -> sqlite3.Connection:
+    """For readers like the site build: no schema changes, no writes. Tables added since the
+    database was saved (such as refresh_runs) are created in a temporary in-memory copy instead."""
+    disk = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    conn = sqlite3.connect(":memory:")
+    disk.backup(conn)
+    disk.close()
+    conn.executescript(SCHEMA)
+    return conn
+
+
 def upsert_prices(conn: sqlite3.Connection, df: pd.DataFrame) -> None:
     rows = df.assign(date=pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d"))
     conn.executemany(

@@ -1,0 +1,195 @@
+{% extends "base.html.j2" %}
+{% block title %}{% if mode == "archive" %}Morning Brief, {{ s.date|long_date }}{% else %}Morning Brief: cross-asset moves for the US open, checked{% endif %}{% endblock %}
+{% block content %}
+{% set status_class = {"OK": "ok", "WARN": "warn", "FAIL": "fail"} %}
+
+<section class="hero">
+  <h1>Morning Brief</h1>
+  <p class="lede">Cross-asset moves for the US open, checked before they're shown. When the data is stale, frozen, implausible or disagrees with a second source, the page says so.</p>
+  <p class="updated">Last updated: <strong>{{ s.as_of }}</strong> <span id="ago" class="muted"></span></p>
+  {% if mode == "archive" %}
+  <div class="notice archive">Archived brief for {{ s.date|long_date }}.
+    {% if not is_latest %}<a href="{{ base }}index.html">See the latest brief →</a>{% endif %}
+    <a href="{{ base }}archive.html">All past briefs</a></div>
+  {% else %}
+  <div id="timing" class="notice" hidden></div>
+  <noscript><div class="notice warn">JavaScript is off, so this page can't check whether its data is stale. Compare the time above with now.</div></noscript>
+  {% endif %}
+
+  <div class="status {{ status_class[s.status] }}" role="status">{{ s.banner }}</div>
+  {% if s.problems %}
+  <details class="box"><summary>Check details ({{ s.problems|length }})</summary>
+    <div class="scroll"><table class="data">
+      <thead><tr><th>Status</th><th>Check</th><th>Series</th><th>Detail</th></tr></thead>
+      <tbody>{% for p in s.problems %}<tr><td><span class="pill {{ status_class[p.status] }}">{{ p.status }}</span></td><td>{{ p.check }}</td><td>{{ p.ticker or "" }}</td><td>{{ p.detail }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+  </details>
+  {% endif %}
+  <p class="coverage">{{ s.coverage.checks }} checks · {{ s.coverage.instruments }} instruments · {{ s.coverage.cross_checked }} cross-checked against FRED or the ECB · {{ s.coverage.single_source }} single source</p>
+  {% if s.headline %}<p class="headline">{{ s.headline|md }}</p>{% endif %}
+</section>
+
+{% if mode == "latest" %}
+<details class="box demo" id="try-to-break-it">
+  <summary><strong>Try to break it:</strong> a real disagreement between two sources, then inject your own bad print, frozen feed or unit error</summary>
+  <h3>A real one first</h3>
+  <p>Yahoo and FRED both publish the VIX close, and they normally match exactly.</p>
+  {% if extras.incident %}
+  <p>{{ extras.incident.summary }}</p>
+  <div class="scroll"><table class="data">
+    <thead><tr><th>Date</th><th class="num">Yahoo</th><th class="num">FRED</th><th class="num">Gap</th><th>Check</th></tr></thead>
+    <tbody>{% for r in extras.incident.rows %}<tr><td>{{ r.date }}</td><td class="num">{{ r.yahoo }}</td><td class="num">{{ r.fred }}</td><td class="num">{{ r.gap }}</td><td><span class="pill {{ status_class[r.status] }}">{{ r.status }}</span></td></tr>{% endfor %}</tbody>
+  </table></div>
+  <p class="muted small">Closes as downloaded from both sources; the status is the real reconciliation check's own output on each day. Two sources can't say which one is wrong, so both rows would be flagged.</p>
+  {% else %}
+  <p class="muted small">The real-incident data hasn't been downloaded yet. The next refresh fetches it from Yahoo and FRED.</p>
+  {% endif %}
+  <h3>Now try your own</h3>
+  <p class="muted small">Every combination below was run through the real checks on a copy of this brief's data when the page was built. Nothing here changes the data or the banner above.</p>
+  <div class="demo-controls">
+    <label>Instrument <select id="demo-instrument"></select></label>
+    <label>Fault <select id="demo-fault"></select></label>
+    <button id="demo-run" type="button">Inject fault (simulated)</button>
+  </div>
+  <div id="demo-result" aria-live="polite"></div>
+</details>
+{% endif %}
+
+<section class="tiles">
+  {% set rows_by = {} %}{% for g in s.groups %}{% for r in g.rows %}{% set _ = rows_by.update({r.ticker: r}) %}{% endfor %}{% endfor %}
+  {% for t in s.tiles %}{% set r = rows_by[t] %}
+  <div class="tile" title="{{ r.from_to }} ({{ r.basis }}). The line shows the last {{ r.trend|length }} closes.">
+    <div class="tile-name">{{ r.name }} {{ r.flag }}</div>
+    <div class="tile-value">{{ r.last }}</div>
+    <div class="tile-change {{ r.tint }}">{{ r.change }}</div>
+    <div class="tile-spark {{ r.tint }}">{{ r.trend|sparkline(width=150, height=40) }}</div>
+  </div>
+  {% endfor %}
+</section>
+
+{% for g in s.groups %}
+<section>
+  <h2>{{ g.name }}</h2>
+  <div class="scroll"><table class="data markets">
+    <thead><tr><th class="sticky">Instrument</th><th class="num">Last</th><th class="num">Change</th><th>Flag</th><th>Cross-check</th><th>20d trend</th><th>From → to</th><th>Basis</th><th>Source</th></tr></thead>
+    <tbody>{% for r in g.rows %}
+      <tr><td class="sticky">{{ r.name }}</td><td class="num">{{ r.last or "" }}</td><td class="num change {{ r.tint }}">{{ r.change }}</td><td>{{ r.flag }}</td>
+        <td>{{ r.cross_check }}</td><td class="trend">{{ r.trend|sparkline(width=90, height=22) }}</td><td class="nowrap">{{ r.from_to or "" }}</td><td>{{ r.basis or "" }}</td><td>{{ r.source }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+</section>
+{% endfor %}
+<p class="muted small">Each change compares a ticker's last two rows, so periods differ by market. live = that session was still open when fetched; it is not a real-time price.</p>
+<p class="muted small">{{ s.coverage.single_source }} of {{ s.coverage.instruments }} instruments are single source: passing checks means they look plausible, not that a second source agrees.</p>
+
+<section>
+  <h2>How unusual {% if mode == "latest" %}is today{% else %}was this brief{% endif %}?</h2>
+  {% if s.ranking %}
+  <div class="chart" style="height: {{ 26 * s.ranking|length + 70 }}px"><canvas id="ranking-chart" aria-label="Latest move of each instrument in robust standard deviations"></canvas></div>
+  <details class="box fallback"><summary>As a table</summary>
+    <table class="data"><thead><tr><th>Instrument</th><th class="num">Move</th><th class="num">σ</th></tr></thead>
+    <tbody>{% for r in s.ranking %}<tr><td>{{ r.name }}</td><td class="num">{{ r.change }}</td><td class="num">{{ "%.1f"|format(r.z) }}</td></tr>{% endfor %}</tbody></table>
+  </details>
+  <p class="muted small">Each move is measured against that instrument's own recent volatility, using the sanity check's number. WARN at {{ "%g"|format(s.thresholds.warn) }}σ, FAIL at {{ "%g"|format(s.thresholds.fail) }}σ. Moves cover different periods by market; see the tables above.{% if s.too_short %} Not enough history to rank: {{ s.too_short|join(", ") }}.{% endif %}</p>
+  {% else %}
+  <p class="notice">Not enough history to rank the moves yet.</p>
+  {% endif %}
+</section>
+
+{% if mode == "latest" and extras.history %}
+<section>
+  <h2>History</h2>
+  <label class="inline">Instrument <select id="history-instrument"></select></label>
+  <div class="chart" style="height: 300px"><canvas id="history-chart" aria-label="Stored daily closes for the chosen instrument"></canvas></div>
+  <p class="muted small">Daily closes stored by the refresh, about four months. Hover for values.</p>
+</section>
+{% endif %}
+
+<section>
+  <details class="box"><summary>Copy {% if mode == "latest" %}today's{% else %}this brief's{% endif %} note: plain text for chat or email, with the same numbers and caveats as this page</summary>
+    <pre id="note">{{ s.note }}</pre>
+    <button type="button" class="copy" data-copy="note">Copy note</button>
+  </details>
+</section>
+
+<section>
+  <h2>What's scheduled for {{ s.date|long_date }}</h2>
+  {% set sch = s.schedule %}
+  {% if sch.state == "not_loaded" %}
+  <p class="notice fail">Couldn't load the calendar, so this says nothing about whether events were scheduled.</p>
+  {% else %}
+    {% if sch.failed %}<p class="notice warn">Couldn't load the latest calendar from {{ sch.failed|join(", ") }}. The list may be incomplete.</p>{% endif %}
+    {% if sch.today %}
+    <ul class="events">{% for e in sch.today %}<li><strong>{{ e.time }}</strong> {{ e.event }} ({% for name, link in e.sources %}<a href="{{ link }}">{{ name }}</a>{% if not loop.last %} · {% endif %}{% endfor %})</li>{% endfor %}</ul>
+    {% elif not sch.failed %}<p class="notice">No events scheduled that day in the calendars below.</p>
+    {% else %}<p class="notice">No events listed that day in the calendars that did load.</p>{% endif %}
+    {% set n_up = namespace(n=0) %}{% for d, rows in sch.upcoming.items() %}{% set n_up.n = n_up.n + rows|length %}{% endfor %}
+    <details class="box"><summary>Next 5 business days ({{ n_up.n }} events)</summary>
+      {% for d, rows in sch.upcoming.items() %}
+      <p><strong>{{ d|long_date }}</strong></p>
+      {% if rows %}<ul class="events">{% for e in rows %}<li><strong>{{ e.time }}</strong> {{ e.event }} ({% for name, link in e.sources %}<a href="{{ link }}">{{ name }}</a>{% if not loop.last %} · {% endif %}{% endfor %})</li>{% endfor %}</ul>
+      {% else %}<p class="muted small">No events listed.</p>{% endif %}
+      {% endfor %}
+    </details>
+  {% endif %}
+  <p class="muted small">Times are New York time, as published. Covers {{ sch.covered|join(", ") }}. Not covered: BLS, including CPI and jobs reports, because its site refuses automated requests. Check <a href="https://www.bls.gov/schedule/news_release/">its schedule</a> directly.</p>
+</section>
+
+<section>
+  <h2>Overnight news</h2>
+  {% set n = s.news %}
+  {% if not n %}<p class="notice">No news summary yet.</p>
+  {% else %}
+    {% set links = {} %}{% for h in n.headlines or [] %}{% set _ = links.update({h.id: h}) %}{% endfor %}
+    {% if n.bullets %}
+    <ul class="news">{% for b in n.bullets %}<li>{{ b.bullet }} {% for id in b.sources %}{% if id in links %}<a href="{{ links[id].link }}">[{{ id }}]</a> {% endif %}{% endfor %}</li>{% endfor %}</ul>
+    <p class="muted small">AI-generated from the headlines below ({{ n.model }}). Check sources before acting.</p>
+    {% elif n.error == "no headlines" %}<p class="notice">No new official releases since the previous US close.</p>
+    {% elif n.error %}<p class="notice">{{ n.error }}</p>
+    {% else %}<p class="notice">No market-moving headlines overnight</p>{% endif %}
+    <details class="box"><summary>All headlines ({{ (n.headlines or [])|length }})</summary>
+      <ul class="news">{% for h in n.headlines or [] %}<li>[{{ h.id }}] <strong>{{ h.source }}</strong>{% if h.published %} ({{ h.published[:10] }}){% endif %}: <a href="{{ h.link }}">{{ h.title }}</a></li>{% endfor %}</ul>
+    </details>
+  {% endif %}
+</section>
+
+{% if mode == "latest" %}
+<section>
+  <h2>Track record</h2>
+  <p>{{ extras.track.headline }}</p>
+  <details class="box"><summary>What the checks found ({{ extras.track.findings|length }})</summary>
+    {% if extras.track.findings %}
+    <div class="scroll"><table class="data"><thead><tr><th>Status</th><th>Check</th><th>Series</th><th>First seen</th><th>Last seen</th><th class="num">Runs</th><th>Latest detail</th></tr></thead>
+    <tbody>{% for f in extras.track.findings %}<tr><td><span class="pill {{ status_class[f.status] }}">{{ f.status }}</span></td><td>{{ f.check }}</td><td>{{ f.series }}</td><td class="nowrap">{{ f["first seen"] }}</td><td class="nowrap">{{ f["last seen"] }}</td><td class="num">{{ f.runs }}</td><td>{{ f["latest detail"] }}</td></tr>{% endfor %}</tbody></table></div>
+    <p class="muted small">Each row merges the same result across runs. The cause and fix for each is in the <a href="{{ repo_url }}/blob/main/docs/build-notes.md">build notes</a>.</p>
+    {% else %}<p class="muted small">No WARN or FAIL results logged yet.</p>{% endif %}
+  </details>
+  <details class="box"><summary>Every refresh ({{ extras.track.refreshes|length }})</summary>
+    <div class="scroll"><table class="data"><thead><tr><th>Ran (ET)</th><th>Trigger</th><th>Timing</th></tr></thead>
+    <tbody>{% for r in extras.track.refreshes %}<tr><td class="nowrap">{{ r["ran (ET)"] }}</td><td>{{ r.trigger }}</td><td>{{ r.timing }}</td></tr>{% endfor %}</tbody></table></div>
+    <p class="muted small">Runs from before triggers were logged say "not recorded". Pre-open means a weekday before 9:30 AM ET.</p>
+  </details>
+</section>
+{% endif %}
+
+<section>
+  <details class="box"><summary>How the data checks work</summary>
+    <ul>
+      <li><strong>Completeness:</strong> every instrument arrived with enough history and no bad values.</li>
+      <li><strong>Freshness:</strong> the latest row is from the session we expect.</li>
+      <li><strong>Gaps:</strong> no business days are missing from recent history.</li>
+      <li><strong>Sanity:</strong> today's move is plausible for that instrument, and the price isn't frozen.</li>
+      <li><strong>Reconciliation:</strong> two sources for the same series agree.</li>
+    </ul>
+    <p class="muted small">This page is rebuilt by GitHub Actions after each weekday pre-open refresh. A machine-readable copy of the latest brief is at <a href="{{ base }}latest.json">latest.json</a>.</p>
+  </details>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script id="page-data" type="application/json">{{ {"mode": mode, "last_fetch": s.last_fetch, "ranking": s.ranking, "thresholds": s.thresholds,
+  "demo": extras.demo if extras else None, "history": extras.history if extras else None}|tojson_safe }}</script>
+<script src="{{ base }}assets/vendor/chart.umd.js"></script>
+<script src="{{ base }}assets/timing.js"></script>
+<script src="{{ base }}assets/page.js"></script>
+{% endblock %}
