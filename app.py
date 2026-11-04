@@ -55,65 +55,19 @@ if problems:
             hide_index=True, width="stretch",
         )
 
-st.markdown("**Try to break it:** inject a bad print and watch the checks catch it. "
-            "[Open the demo](#try-to-break-it)")
-
-# ---- 2. Latest change by asset class ----
-KEY_MARKETS = ["ES=F", "^TNX", "DX-Y.NYB", "CL=F", "GC=F", "^VIX"]
 main_instruments = [i for i in cfg["instruments"] if not i.get("reference")]
-rows = [moves.build_row(inst, prices, results, cfg) for inst in main_instruments]
-table = pd.DataFrame(rows)
+n_cross = sum(i["ticker"] in partners for i in main_instruments)
+st.caption(f"{len(results)} checks this load · {len(main_instruments)} instruments · "
+           f"{n_cross} cross-checked against FRED or the ECB · {len(main_instruments) - n_cross} single source")
 
-by_key = table.set_index("ticker")
-tiles = [t for t in KEY_MARKETS if t in by_key.index and pd.notna(by_key.loc[t, "last"])]
-# A wrapping row, so tile values stay whole on narrower screens
-with st.container(horizontal=True):
-    for t in tiles:
-        row = by_key.loc[t]
-        st.metric(f"{row['name']} {row['flag']}".strip(), row["last"], row["Change"], border=True, width=195,
-                  chart_data=row["trend"], chart_type="line",
-                  help=f"{row['from → to']} ({row['basis']}). The line shows the last {moves.TREND_DAYS} closes.")
-
-# Fixed pixel widths that add up to fit a 1024px screen with no column clipped
-COLUMNS = {
-    "name": st.column_config.TextColumn("Instrument", width=140),
-    "last": st.column_config.TextColumn("Last", width=70),
-    "Change": st.column_config.TextColumn("Change", width=65),
-    "trend": st.column_config.LineChartColumn(f"{moves.TREND_DAYS}d trend", width=65),
-    "from → to": st.column_config.TextColumn("From → to", width=150),
-    "basis": st.column_config.TextColumn("Basis", width=105),
-    "source": st.column_config.TextColumn("Source", width=55),
-    "cross-check": st.column_config.TextColumn("Cross-check", width=175),
-    "flag": st.column_config.TextColumn("Flag", width=40),
-}
-# One table per row: side by side, the rightmost columns get clipped on a laptop screen
-for group, g in table.groupby("group", sort=False):
-    st.subheader(group)
-    styled = g.drop(columns=["group", "ticker"]).style.map(moves.change_tint, subset=["Change"])
-    st.dataframe(styled, hide_index=True, width="stretch", column_config=COLUMNS)
-
-st.caption("Each change compares a ticker's last two rows, so periods differ by market. "
-           "live = that session was still open when fetched; it is not a real-time price.")
-n_single = sum(i["ticker"] not in partners for i in main_instruments)
-st.caption(f"{n_single} of {len(main_instruments)} instruments are single source: "
-           "passing checks means they look plausible, not that a second source agrees.")
-
-# ---- 3. How unusual is today? Comparable across assets, unlike raw percentages ----
-st.subheader("How unusual is today?")
 ranked, too_short = ranking.unusual_moves(prices, cfg)
-if ranked.empty:
-    st.info("Not enough history to rank today's moves yet.")
-else:
-    st.altair_chart(ranking.chart(ranked, cfg["checks"]), width="stretch")
-    note = ("Each move is measured against that instrument's own recent volatility, using the sanity check's number. "
-            "Moves cover different periods by market; see the tables above.")
-    st.caption(note + (f" Not enough history to rank: {', '.join(too_short)}." if too_short else ""))
+if (line := ranking.headline(ranked, cfg["checks"])):
+    st.markdown(moves.escape_dollars(line))
 
-# ---- 4. Try to break it: real checks on a throwaway copy of the data ----
-st.subheader("Try to break it", anchor="try-to-break-it")
-st.caption("Inject a fault into an in-memory copy of the data and rerun the real checks. Results are simulated: "
-           "nothing is saved, and the banner at the top of this page doesn't change.")
-with st.container(border=True):
+# ---- 2. Try to break it: real checks on a throwaway copy of the data ----
+with st.expander("**Try to break it:** inject a bad print, frozen feed or unit error, and see which check catches it"):
+    st.caption("This changes an in-memory copy of the data and reruns the real checks. Results are simulated: "
+               "nothing is saved, and the banner above doesn't change.")
     breakable = [i for i in main_instruments if (prices["ticker"] == i["ticker"]).sum() >= 2]
     if breakable:
         names = [i["name"] for i in breakable]
@@ -122,7 +76,7 @@ with st.container(border=True):
         inst = breakable[names.index(name)]
         labels = [demo.FAULTS[f] for f in demo.faults_for(inst)]
         fault_label = fault_pick.selectbox("Fault", labels, key="demo_fault")
-        if st.button("Inject fault (simulated)", key="demo_inject"):
+        if st.button("Inject fault (simulated)", key="demo_inject", type="primary"):
             fault = next(k for k, v in demo.FAULTS.items() if v == fault_label)
             sim = demo.simulate(prices, cfg, inst["ticker"], fault, datetime.now(timezone.utc), schedule_results)
             st.markdown("**Simulated result. Real data is unchanged.**")
@@ -135,6 +89,61 @@ with st.container(border=True):
             st.markdown(sim.row_text)
     else:
         st.info("Not enough data to run the demo yet.")
+
+# ---- 3. Latest change by asset class ----
+KEY_MARKETS = ["ES=F", "^TNX", "DX-Y.NYB", "CL=F", "GC=F", "^VIX"]
+rows = [moves.build_row(inst, prices, results, cfg) for inst in main_instruments]
+table = pd.DataFrame(rows)
+
+by_key = table.set_index("ticker")
+tiles = [t for t in KEY_MARKETS if t in by_key.index and pd.notna(by_key.loc[t, "last"])]
+# A wrapping row: six across on a laptop, two across on a phone. The value font
+# shrinks on narrow screens so a number like 101.5430 stays whole in a 170px tile.
+st.markdown("<style>@media (max-width: 640px) { [data-testid='stMetricValue'] { font-size: 1.6rem; } }</style>",
+            unsafe_allow_html=True)
+with st.container(horizontal=True):
+    for t in tiles:
+        row = by_key.loc[t]
+        st.metric(f"{row['name']} {row['flag']}".strip(), row["last"], row["Change"], border=True, width=170,
+                  chart_data=row["trend"], chart_type="line",
+                  help=f"{row['from → to']} ({row['basis']}). The line shows the last {moves.TREND_DAYS} closes.")
+
+# Fixed pixel widths that add up to fit a 1024px screen with no column clipped
+COLUMNS = {
+    "name": st.column_config.TextColumn("Instrument", width=140, pinned=True),
+    "last": st.column_config.TextColumn("Last", width=70),
+    "Change": st.column_config.TextColumn("Change", width=65),
+    "trend": st.column_config.LineChartColumn(f"{moves.TREND_DAYS}d trend", width=65),
+    "from → to": st.column_config.TextColumn("From → to", width=150),
+    "basis": st.column_config.TextColumn("Basis", width=105),
+    "source": st.column_config.TextColumn("Source", width=55),
+    "cross-check": st.column_config.TextColumn("Cross-check", width=175),
+    "flag": st.column_config.TextColumn("Flag", width=40),
+}
+# Flag and cross-check come right after the change, so a phone shows them before it has to scroll
+COLUMN_ORDER = ["name", "last", "Change", "flag", "cross-check", "trend", "from → to", "basis", "source"]
+# One table per row: side by side, the rightmost columns get clipped on a laptop screen
+for group, g in table.groupby("group", sort=False):
+    st.subheader(group)
+    styled = g.drop(columns=["group", "ticker"]).style.map(moves.change_tint, subset=["Change"])
+    st.dataframe(styled, hide_index=True, width="stretch", column_config=COLUMNS, column_order=COLUMN_ORDER)
+
+st.caption("Each change compares a ticker's last two rows, so periods differ by market. "
+           "live = that session was still open when fetched; it is not a real-time price.")
+n_single = sum(i["ticker"] not in partners for i in main_instruments)
+st.caption(f"{n_single} of {len(main_instruments)} instruments are single source: "
+           "passing checks means they look plausible, not that a second source agrees.")
+
+# ---- 3. How unusual is today? Comparable across assets, unlike raw percentages ----
+st.subheader("How unusual is today?")
+if ranked.empty:
+    st.info("Not enough history to rank today's moves yet.")
+else:
+    st.altair_chart(ranking.chart(ranked, cfg["checks"]), width="stretch")
+    note = (f"Each move is measured against that instrument's own recent volatility, using the sanity check's number. "
+            f"WARN at {cfg['checks']['move_warn_z']:g}σ, FAIL at {cfg['checks']['move_fail_z']:g}σ. "
+            "Moves cover different periods by market; see the tables above.")
+    st.caption(note + (f" Not enough history to rank: {', '.join(too_short)}." if too_short else ""))
 
 # ---- 5. What's scheduled today: official calendars, loaded by the refresh ----
 def schedule_line(row):

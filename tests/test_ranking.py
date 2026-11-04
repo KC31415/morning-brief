@@ -64,20 +64,36 @@ def test_values_match_what_the_sanity_check_reports():
         assert f"{row['z']:.1f}" == re.search(r"is ([\d.]+) robust", sanity[row["ticker"]]).group(1)
 
 
-def test_chart_marks_both_thresholds_and_keeps_them_in_view():
+def test_quiet_day_draws_warn_and_names_fail_at_the_edge():
     table, _ = ranking.unusual_moves(*world())
+    table = table.assign(z=[3.2, 1.5, 0.1][:len(table)])
     spec = ranking.chart(table, CFG).to_dict()
     text = str(spec)
-    assert "WARN 4σ" in text and "FAIL 10σ" in text
+    assert "'WARN 4σ'" in text and "'FAIL 10σ →'" in text and "'FAIL 10σ'" not in text
     domain = spec["layer"][0]["encoding"]["x"]["scale"]["domain"]
-    assert domain[0] == 0 and domain[1] >= 10
+    assert domain[0] == 0 and 4 < domain[1] < 10  # scaled to the data, WARN line in view
+
+
+def test_headline_names_the_top_move_and_its_threshold():
+    table, _ = ranking.unusual_moves(*world())
+    line = ranking.headline(table, CFG)
+    top = table.iloc[0]
+    assert line.startswith(f"Most unusual move: **{top['name']} {top['change']}**, {top['z']:.1f}σ")
+    assert top["z"] >= 4 and "past the 4σ WARN line" in line
+    quiet = table.assign(z=[3.2] + list(table["z"].iloc[1:]))
+    assert "Nothing reaches the 4σ WARN line" in ranking.headline(quiet, CFG)
+    fail = table.assign(z=[12.0] + list(table["z"].iloc[1:]))
+    assert "past the 10σ FAIL line" in ranking.headline(fail, CFG)
+    assert ranking.headline(table.iloc[0:0], CFG) is None
 
 
 def test_chart_stretches_to_fit_a_move_past_the_fail_line():
     prices = series("HUGE", 0.5)
     table, _ = ranking.unusual_moves(prices, config(inst("HUGE")))
-    domain = ranking.chart(table, CFG).to_dict()["layer"][0]["encoding"]["x"]["scale"]["domain"]
-    assert domain[1] > table["z"].max()
+    spec = ranking.chart(table, CFG).to_dict()
+    domain = spec["layer"][0]["encoding"]["x"]["scale"]["domain"]
+    assert domain[1] > table["z"].max() and domain[1] > 10
+    assert "'FAIL 10σ'" in str(spec)  # drawn as a line once it's in view
 
 
 def test_page_shows_the_ranking(tmp_path, monkeypatch):

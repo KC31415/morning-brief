@@ -106,6 +106,10 @@ def test_table_shows_source_and_marks_single_source_rows(tmp_path, monkeypatch):
     assert any("13 of 21 instruments are single source" in c.value for c in at.caption)
     assert any("Chicago Board Options Exchange" in c.value for c in at.caption)
     assert any("Data as of " in c.value and " ET, " in c.value for c in at.caption)
+    # The coverage line counts the checks this page load actually ran
+    assert any(f" checks this load · 21 instruments · 8 cross-checked against FRED or the ECB · 13 single source" in c.value
+               for c in at.caption)
+    assert any(m.value.startswith("Most unusual move: **") for m in at.markdown)
 
 
 def run_page_with_summary(tmp_path, monkeypatch, summary):

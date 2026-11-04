@@ -173,4 +173,7 @@ def test_page_is_honest_when_nothing_catches_the_fault(page):
 
 def test_invitation_sits_near_the_top(page):
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
-    assert any("Try to break it" in m.value and "#try-to-break-it" in m.value for m in at.markdown)
+    # Directly under the status banner (and its check details, if any), before every other section
+    labels = [e.label for e in at.expander]
+    demo_at = next(i for i, label in enumerate(labels) if "Try to break it" in label)
+    assert labels[:demo_at] in ([], ["Check details"])
