@@ -9,6 +9,7 @@ import pandas as pd
 from streamlit.testing.v1 import AppTest
 
 ROOT = Path(__file__).resolve().parents[1]
+APP = ROOT / "streamlit_app" / "app.py"
 sys.path.insert(0, str(ROOT / "src"))
 
 from morning_brief import checks, config, history, incidents, ingest, storage  # noqa: E402
@@ -118,7 +119,7 @@ def page(tmp_path, monkeypatch, incident_path):
     monkeypatch.setattr(config, "DB_PATH", db)
     monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
     monkeypatch.setitem(incidents.VIX_FEB_2026, "path", incident_path)
-    return AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+    return AppTest.from_file(str(APP), default_timeout=30).run()
 
 
 def test_page_replays_the_incident_from_the_file(tmp_path, monkeypatch):

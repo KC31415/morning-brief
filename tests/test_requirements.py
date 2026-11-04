@@ -3,10 +3,11 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+APP = ROOT / "streamlit_app" / "app.py"
 
 
 def test_app_does_not_use_deprecated_container_width():
-    assert "use_container_width" not in (ROOT / "app.py").read_text()
+    assert "use_container_width" not in (APP).read_text()
 
 
 def test_streamlit_floor_supports_width_stretch():

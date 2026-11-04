@@ -8,6 +8,7 @@ import pandas as pd
 from streamlit.testing.v1 import AppTest
 
 ROOT = Path(__file__).resolve().parents[1]
+APP = ROOT / "streamlit_app" / "app.py"
 sys.path.insert(0, str(ROOT / "src"))
 
 from morning_brief import checks, ranking, storage  # noqa: E402
@@ -104,6 +105,6 @@ def test_page_shows_the_ranking(tmp_path, monkeypatch):
     conn.close()
     monkeypatch.setattr(settings, "DB_PATH", path)
     monkeypatch.setattr(settings, "SUMMARY_PATH", tmp_path / "summary.json")
-    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+    at = AppTest.from_file(str(APP), default_timeout=30).run()
     assert not at.exception
     assert "How unusual is today?" in [s.value for s in at.subheader]

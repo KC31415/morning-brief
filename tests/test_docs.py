@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+APP = ROOT / "streamlit_app" / "app.py"
 README = (ROOT / "README.md").read_text()
 NOTES = (ROOT / "docs" / "build-notes.md").read_text()
 
@@ -29,5 +30,5 @@ def test_build_notes_are_numbered_in_order():
 
 
 def test_vix_notice_says_it_is_freds_required_text():
-    app = (ROOT / "app.py").read_text()
+    app = (APP).read_text()
     assert "as FRED requires it to be shown" in app and "Reprinted with permission" in app

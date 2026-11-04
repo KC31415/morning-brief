@@ -76,6 +76,7 @@ flowchart LR
 | File | Role |
 |---|---|
 | `scripts/refresh.py` | Runs the pipeline once |
+| `streamlit_app/app.py` | The Streamlit version of the page (root `app.py` just runs it) |
 | `src/morning_brief/checks.py` | The six checks; `run_all` is what the page and the demo both call |
 | `src/morning_brief/runs.py` | Pre-open timing, the refresh guard, the as-of label |
 | `src/morning_brief/demo.py`, `incidents.py` | Simulated faults, and the real VIX disagreement replay |
@@ -109,7 +110,7 @@ The Worker and Healthchecks need a one-time setup with my accounts ([`ops/schedu
 pip install -r requirements.txt
 export ANTHROPIC_API_KEY=...      # optional; without it you get headlines only
 python scripts/refresh.py
-streamlit run app.py
+streamlit run streamlit_app/app.py
 pytest -q
 ```
 

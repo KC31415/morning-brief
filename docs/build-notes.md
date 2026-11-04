@@ -351,3 +351,8 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **Decisions:** no LLM, so it can't say anything the page doesn't. Caveats travel with the numbers, so a pasted note can't look more certain than the page. Failures go above the moves, because that's what the reader most needs to know. Rates show only when there's a value.
 - **Bug avoided:** the ranking caption already used a local variable named `note`, which would have shadowed the new module and crashed the page. It's now `explain`.
 - **Tests:** the note's content for a clean run, a FAIL, a calendar that didn't load and a rate with no value, and that the page renders it.
+
+## 38. Streamlit app moved to its own folder
+
+- **Why:** the main deployment is moving to a static site on GitHub Pages (entry 39), because a free Streamlit app sleeps after about 12 hours without visitors, and a recruiter opening the link sees a wake-up screen instead of the page. The Streamlit version stays for local use.
+- **What changed:** `app.py` moved to `streamlit_app/app.py`, with its import path adjusted and a footer link to the Pages site. A three-line `app.py` at the root runs it, so the existing Streamlit Cloud deployment, which is configured to run `app.py`, keeps working with no settings change, and links already sent out don't break. Tests now open the moved file, and a new one checks that the root entry point still renders the page.

@@ -10,6 +10,7 @@ import pandas as pd
 from streamlit.testing.v1 import AppTest
 
 ROOT = Path(__file__).resolve().parents[1]
+APP = ROOT / "streamlit_app" / "app.py"
 sys.path.insert(0, str(ROOT / "src"))
 
 from morning_brief import checks, config, storage  # noqa: E402
@@ -34,7 +35,7 @@ def test_reconciliation_failure_flags_the_main_row(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "DB_PATH", db)
     monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
 
-    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+    at = AppTest.from_file(str(APP), default_timeout=30).run()
 
     assert not at.exception
     rows = pd.concat([d.value for d in at.dataframe])
@@ -54,7 +55,7 @@ def test_table_shows_change_span_and_basis(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "DB_PATH", db)
     monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
 
-    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+    at = AppTest.from_file(str(APP), default_timeout=30).run()
 
     rows = pd.concat([d.value for d in at.dataframe])
     tnx = rows[rows["name"] == "US 10Y yield"].iloc[0]
@@ -76,7 +77,7 @@ def test_short_history_flag_matches_banner(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
     monkeypatch.setattr(config, "load_config", lambda: cfg)
 
-    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+    at = AppTest.from_file(str(APP), default_timeout=30).run()
 
     assert not at.exception
     assert at.warning and not at.error
@@ -95,7 +96,7 @@ def test_table_shows_source_and_marks_single_source_rows(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "DB_PATH", db)
     monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
 
-    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+    at = AppTest.from_file(str(APP), default_timeout=30).run()
 
     rows = pd.concat([d.value for d in at.dataframe]).set_index("name")
     assert rows.loc["US 10Y yield", "source"] == "Yahoo"
@@ -123,7 +124,7 @@ def run_page_with_summary(tmp_path, monkeypatch, summary):
     path.write_text(json.dumps(summary))
     monkeypatch.setattr(config, "DB_PATH", db)
     monkeypatch.setattr(config, "SUMMARY_PATH", path)
-    return AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+    return AppTest.from_file(str(APP), default_timeout=30).run()
 
 
 def news_notes(at):
@@ -173,7 +174,7 @@ def test_single_warning_banner_is_singular(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
     monkeypatch.setattr(config, "load_config", lambda: cfg)
 
-    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+    at = AppTest.from_file(str(APP), default_timeout=30).run()
 
     assert at.warning[0].value.startswith("1 data warning.")
 
@@ -221,7 +222,7 @@ def page_fetched_at(tmp_path, monkeypatch, fetched_at):
     monkeypatch.setattr(config, "DB_PATH", db)
     monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
     only_tnx_config(monkeypatch)
-    return AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+    return AppTest.from_file(str(APP), default_timeout=30).run()
 
 
 def test_old_fetch_shows_red_stale_banner_even_when_checks_pass(tmp_path, monkeypatch):
@@ -234,3 +235,18 @@ def test_old_fetch_shows_red_stale_banner_even_when_checks_pass(tmp_path, monkey
 def test_recent_fetch_has_no_stale_banner(tmp_path, monkeypatch):
     at = page_fetched_at(tmp_path, monkeypatch, pd.Timestamp.now(tz="UTC").isoformat(timespec="seconds"))
     assert not at.error
+
+
+def test_root_entry_point_still_runs_the_app(tmp_path, monkeypatch):
+    # Streamlit Cloud runs app.py at the root; it must keep rendering the moved app
+    db = tmp_path / "brief.db"
+    conn = sqlite3.connect(db)
+    conn.executescript(storage.SCHEMA)
+    storage.upsert_prices(conn, yield_series("^TNX", checks.expected_session(datetime.now(timezone.utc))))
+    conn.close()
+    monkeypatch.setattr(config, "DB_PATH", db)
+    monkeypatch.setattr(config, "SUMMARY_PATH", tmp_path / "summary.json")
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+    assert not at.exception
+    assert at.title[0].value == "Morning Brief"
+    assert any("kc31415.github.io/morning-brief" in c.value for c in at.caption)
