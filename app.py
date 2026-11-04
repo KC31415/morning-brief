@@ -241,6 +241,7 @@ with st.expander("How the data checks work"):
 """)
 st.caption("Second-source data retrieved from FRED, Federal Reserve Bank of St. Louis, which does not endorse this page. "
            "VIX: Chicago Board Options Exchange, CBOE Volatility Index [VIXCLS]. "
+           "Copyright notice for this series, as FRED requires it to be shown: "
            "Copyright, 2016, Chicago Board Options Exchange, Inc. Reprinted with permission.")
 st.caption("Built from free public sources, not production market data. "
            "[Source code and build notes](https://github.com/KC31415/morning-brief)")

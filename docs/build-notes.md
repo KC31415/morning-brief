@@ -2,6 +2,27 @@
 
 Bugs found while building this, how each was found, and what changed.
 
+## Judgment calls at a glance
+
+The decisions an interviewer is most likely to ask about, and where each is argued.
+
+| Decision | What I chose | Why, in one line | Entry |
+|---|---|---|---|
+| Sanity check's volatility | Median absolute deviation, not standard deviation | One bad print can't inflate its own baseline; costs more false WARNs on fat tails | 6 |
+| Reconciliation tolerances | Warn just above the largest measured gap, fail at about 3x | Set from ~120 to ~500 shared days of data, not picked by hand | 12, 21 |
+| 3M T-bill reference | `DTB3`, not `DGS3MO` | Same discount-basis quoting as `^IRX`: 1bp typical gap vs 16bp | 12 |
+| "single source" wording | Not "unverified" | A single-source value isn't known to be wrong, only unchecked | 21 |
+| Nikkei cross-check | Left out | FRED's notes say redistribution needs Nikkei's permission | 21 |
+| VIX cross-check | Kept, with FRED's required notice | Treated as personal non-commercial use; one config line to remove | 21 |
+| Stooq, CNBC, Investing.com, FT, WSJ | Not used | Their terms bar redistribution, or they're subscription publishers | 19, 21 |
+| BLS (CPI, jobs) | Not covered, and the page says so daily | It returns 403 to automated requests; I didn't work around that | 19, 27 |
+| Futures holiday calendar | `XNYS`, not `CMES` | Matches the dates Yahoo actually publishes: 0 misses vs 13 | 22 |
+| News brief | 0 to 5 bullets, may be empty | A prompt demanding 3 to 5 made the model pad with speculation | 17 |
+| Schedule panel | No LLM; only times the source printed | A guessed release time on a trading page is worse than none | 27 |
+| Missed or late refresh | Outside trigger + guard + dead-man's switch | GitHub's cron missed three days, then ran 7h20m late | 28, 29, 31 |
+| Chart scale | Scaled to the data, FAIL named at the edge | Drawing a 10σ line on every quiet day left most of the chart empty | 26, 33 |
+| Database in git | Kept, for now | Simplest way to serve Streamlit Cloud; history grows about 90 KB a run | 35 |
+
 ## 1. Timezone crash in the checks
 
 - **What broke:** `refresh.py` and `app.py` pass `datetime.now(timezone.utc)` as `as_of`, but stored dates are naive. Comparing them in `bdays_between` raised `TypeError`, so no real refresh could finish the check step.
@@ -309,3 +330,16 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 - **Track record:** new `history.py` reads `check_runs` and `refresh_runs`. A new section near the bottom shows: refreshes since the first one, checks logged, WARN and FAIL counts, and how many refreshes ran pre-open on a weekday. One table merges each WARN or FAIL across runs (first seen, last seen, runs, latest detail); another lists every refresh with its New York time, trigger and timing. On the current database that reads "12 refreshes, 1,393 checks logged, 7 WARN and 0 FAIL results. 0 of 12 refreshes ran pre-open on a weekday." That's true, and it's exactly the problem in entry 31. Runs from before triggers were logged say "not recorded". I didn't backfill them from the GitHub API, because changing `brief.db` on a branch would conflict with the bot's daily data commits.
 - **Bug this exposed:** pandas stores an `IntEnum` in a DataFrame as a plain int, so the replay table's `.name` failed until it was converted back with `Status(s)`. A page test caught it.
 - **Test guard widened:** `conftest.py` only hashed files directly in `data/`, so a test writing to `data/incidents/` would have gone unnoticed. It now hashes the whole folder. The refresh test stubs `incidents.ensure`, since otherwise it would fetch from the network and write a real file.
+
+## 35. Keeping the database in git, on purpose
+
+- **The question:** the bot commits `data/brief.db` after every refresh, and a reviewer may ask whether a binary database belongs in git history.
+- **Measured:** the database is 528 KB, and about 89 KB gzipped, which is roughly what git stores per version. At one refresh per weekday that's about 23 MB a year. My first estimate, 0.5 MB a run, ignored compression and was about 6x too high.
+- **Decision:** keep it for now. Streamlit Cloud serves the repo as checked out, so committing the data is the simplest way to deploy it, with no storage service, credentials or extra failure point on page load. The alternatives (a `data` branch, a release asset, or object storage) each add a fetch that can fail when someone opens the page. I'll revisit if the repo passes about 100 MB, or if the lookback grows enough to make each version much larger.
+- **No code change.**
+
+## 36. README rewritten for a visitor
+
+- **What was wrong:** the README opened with a feature list, explained the reliability work nowhere, and had no picture of the checks in action. One sentence, "Most bugs only appeared on real data", contradicted these notes, where most bugs were found by testing with production-shaped inputs or by reading the code.
+- **What changed:** the README now opens with what the page is for, a GIF of the demo catching a +50% bad print, and why I built it. Then come what a visitor sees, the checks, a Mermaid diagram of the triggers, pipeline and alerts, a reliability section that says what still needs setup, and limitations, now including BLS and the single-source count. The contradictory sentence now says some bugs only appeared on live data and most were found by testing with production-shaped inputs or reviewing the code. The screenshot and GIF come from `docs/media/record.cjs` run against the committed data, so they show real numbers. A "Judgment calls at a glance" table at the top of this file indexes the decisions.
+- **VIX notice:** the footer printed the copyright line FRED requires for VIXCLS, ending "Reprinted with permission", which read as if I'd asked CBOE. It now says that this is the notice FRED requires to be shown, with the notice itself unchanged.
