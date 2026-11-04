@@ -12,7 +12,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from morning_brief import checks, demo, history, incidents, moves, ranking, runs, schedules, storage  # noqa: E402
+from morning_brief import checks, demo, history, incidents, moves, note, ranking, runs, schedules, storage  # noqa: E402
 from morning_brief.config import DB_PATH, SUMMARY_PATH, load_config  # noqa: E402
 
 st.set_page_config(page_title="Morning Brief", layout="wide")
@@ -28,6 +28,7 @@ schedule_events, schedule_status = storage.load_schedule_events(conn), storage.l
 schedule_results = schedules.check_schedules(schedule_status, schedule_events, cfg.get("schedules", []), pd.Timestamp.now(tz="UTC"))
 results = checks.run_all(prices, cfg, as_of=datetime.now(timezone.utc)) + schedule_results
 partners = checks.cross_checks(cfg.get("reconcile", []))
+view = schedules.build_view(schedule_status, schedule_events, cfg.get("schedules", []), pd.Timestamp.now(tz="UTC"))
 
 st.title("Morning Brief")
 last_fetch = prices["fetched_at"].max() if not prices.empty else None
@@ -155,10 +156,13 @@ if ranked.empty:
     st.info("Not enough history to rank today's moves yet.")
 else:
     st.altair_chart(ranking.chart(ranked, cfg["checks"]), width="stretch")
-    note = (f"Each move is measured against that instrument's own recent volatility, using the sanity check's number. "
-            f"WARN at {cfg['checks']['move_warn_z']:g}σ, FAIL at {cfg['checks']['move_fail_z']:g}σ. "
-            "Moves cover different periods by market; see the tables above.")
-    st.caption(note + (f" Not enough history to rank: {', '.join(too_short)}." if too_short else ""))
+    explain = (f"Each move is measured against that instrument's own recent volatility, using the sanity check's number. "
+               f"WARN at {cfg['checks']['move_warn_z']:g}σ, FAIL at {cfg['checks']['move_fail_z']:g}σ. "
+               "Moves cover different periods by market; see the tables above.")
+    st.caption(explain + (f" Not enough history to rank: {', '.join(too_short)}." if too_short else ""))
+
+with st.expander("Copy today's note: plain text for chat or email, with the same numbers and caveats as this page"):
+    st.code(note.build(table, ranked, results, last_fetch, view, n_cross, cfg), language=None)
 
 # ---- 5. What's scheduled today: official calendars, loaded by the refresh ----
 def schedule_line(row):
@@ -167,7 +171,6 @@ def schedule_line(row):
 
 
 st.subheader("What's scheduled today")
-view = schedules.build_view(schedule_status, schedule_events, cfg.get("schedules", []), pd.Timestamp.now(tz="UTC"))
 if view.state == "not_loaded":
     st.error("Couldn't load the calendar, so this says nothing about whether events are scheduled today.")
 else:
