@@ -2,38 +2,60 @@
   "model": "claude-haiku-5-5",
   "bullets": [
     {
-      "bullet": "The ECB wage tracker suggests slightly higher wage growth in the first three quarters of 2027 compared with the full year of 2026.",
+      "bullet": "The Federal Reserve Board announced the termination of an enforcement action involving Allegiant United Holdings, LLC, Nano Financial Holdings, Inc., and Nano Banc.",
       "sources": [
         1
       ]
     },
     {
-      "bullet": "The U.S. goods and services trade deficit decreased in September 2026, from $105.7 billion in August, according to the BEA and the U.S. Census Bureau.",
+      "bullet": "EIA reports refineries have shifted production away from gasoline toward middle distillates, with particularly high refinery margins for distillate fuel oil and jet fuel contributing to yield shifts in 2026.",
+      "sources": [
+        4
+      ]
+    },
+    {
+      "bullet": "ECB Executive Board member Isabel Schnabel published remarks on monetary policy titled 'Navigating stormy waters: reflections on monetary policy.'",
       "sources": [
         2
       ]
     }
   ],
-  "prompt": "You are preparing a pre-open market brief for a trading desk.\nUsing ONLY the headlines below, write 0 to 5 bullets on what matters for today's open.\nDo not add facts, numbers or context that are not in the headlines.\nEach bullet must cite the ids of the headlines it is based on.\n\nOnly use headlines that report market news: central banks, economic data, company\nresults or deals, government policy, geopolitics, or moves in markets themselves.\nIgnore personal finance, retirement advice, lifestyle and general explainers.\nIf nothing is market-relevant, respond with []. Never pad to reach a number of bullets.\n\nState only what the headlines say. Do not speculate about impact: no phrasing such as\n\"may be relevant\" or \"could affect\" unless the headline itself says it.\n\nRespond with JSON only, in this form:\n[{\"bullet\": \"...\", \"sources\": [1, 4]}]\n\nHeadlines:\n[1] (ECB) ECB wage tracker suggests slightly higher wage growth in first three quarters of 2027 compared with the full year of 2026 - \n[2] (BEA) U.S. International Trade in Goods and Services, September 2026 - <p>The U.S. goods and services trade deficit decreased in September 2026 according to the U.S. Bureau of Economic Analysis and the U.S. Census Bureau. The deficit decreased from $105.7 billion in Augu\n",
-  "raw_response": "[\n{\"bullet\": \"The ECB wage tracker suggests slightly higher wage growth in the first three quarters of 2027 compared with the full year of 2026.\", \"sources\": [1]},\n{\"bullet\": \"The U.S. goods and services trade deficit decreased in September 2026, from $105.7 billion in August, according to the BEA and the U.S. Census Bureau.\", \"sources\": [2]}\n]",
+  "prompt": "You are preparing a pre-open market brief for a trading desk.\nUsing ONLY the headlines below, write 0 to 5 bullets on what matters for today's open.\nDo not add facts, numbers or context that are not in the headlines.\nEach bullet must cite the ids of the headlines it is based on.\n\nOnly use headlines that report market news: central banks, economic data, company\nresults or deals, government policy, geopolitics, or moves in markets themselves.\nIgnore personal finance, retirement advice, lifestyle and general explainers.\nIf nothing is market-relevant, respond with []. Never pad to reach a number of bullets.\n\nState only what the headlines say. Do not speculate about impact: no phrasing such as\n\"may be relevant\" or \"could affect\" unless the headline itself says it.\n\nRespond with JSON only, in this form:\n[{\"bullet\": \"...\", \"sources\": [1, 4]}]\n\nHeadlines:\n[1] (Federal Reserve) Federal Reserve Board announces termination of enforcement action with Allegiant United Holdings, LLC, Nano Financial Holdings, Inc., and Nano Banc - Federal Reserve Board announces termination of enforcement action with Allegiant United Holdings, LLC, Nano Financial Holdings, Inc., and Nano Banc\n[2] (ECB) Isabel Schnabel: Navigating stormy waters: reflections on monetary policy - \n[3] (ECB) Piero Cipollone: Shaping the future of money - \n[4] (EIA) Refineries have shifted production away from gasoline to middle distillates - Particularly high refinery margins for distillate fuel oil and jet fuel have contributed to shifts in the refinery yields of major products in 2026. Data from our latest Petroleum Supply Monthly\u2014which\n",
+  "raw_response": "[\n{\"bullet\": \"The Federal Reserve Board announced the termination of an enforcement action involving Allegiant United Holdings, LLC, Nano Financial Holdings, Inc., and Nano Banc.\", \"sources\": [1]},\n{\"bullet\": \"EIA reports refineries have shifted production away from gasoline toward middle distillates, with particularly high refinery margins for distillate fuel oil and jet fuel contributing to yield shifts in 2026.\", \"sources\": [4]},\n{\"bullet\": \"ECB Executive Board member Isabel Schnabel published remarks on monetary policy titled 'Navigating stormy waters: reflections on monetary policy.'\", \"sources\": [2]}\n]",
   "error": null,
-  "run_at": "2026-11-04T21:03:42+00:00",
+  "run_at": "2026-11-05T17:59:33+00:00",
   "headlines": [
     {
-      "source": "ECB",
-      "title": "ECB wage tracker suggests slightly higher wage growth in first three quarters of 2027 compared with the full year of 2026",
-      "summary": "",
-      "link": "https://www.ecb.europa.eu//press/pr/date/2026/html/ecb.pr261104~caf181d7ac.en.html",
-      "published": "2026-11-04T00:00:00+00:00",
+      "source": "Federal Reserve",
+      "title": "Federal Reserve Board announces termination of enforcement action with Allegiant United Holdings, LLC, Nano Financial Holdings, Inc., and Nano Banc",
+      "summary": "Federal Reserve Board announces termination of enforcement action with Allegiant United Holdings, LLC, Nano Financial Holdings, Inc., and Nano Banc",
+      "link": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20261105a.htm",
+      "published": "2026-11-05T16:00:00+00:00",
       "id": 1
     },
     {
-      "source": "BEA",
-      "title": "U.S. International Trade in Goods and Services, September 2026",
-      "summary": "<p>The U.S. goods and services trade deficit decreased in September 2026 according to the U.S. Bureau of Economic Analysis and the U.S. Census Bureau. The deficit decreased from $105.7 billion in August (revised) to $105.0 billion in September, as exports increased more than imports. The goods deficit decreased $0.7 billion in September to $135.9 billion. The services surplus decreased less than $0.1 billion in September to $30.9 billion.</p>",
-      "link": "https://www.bea.gov/news/2026/us-international-trade-goods-and-services-september-2026",
-      "published": "2026-11-04T13:30:00+00:00",
+      "source": "ECB",
+      "title": "Isabel Schnabel: Navigating stormy waters: reflections on monetary policy",
+      "summary": "",
+      "link": "https://www.ecb.europa.eu//press/key/date/2026/html/ecb.sp261105_1~5e97d9d5a0.en.html",
+      "published": "2026-11-05T08:00:00+00:00",
       "id": 2
+    },
+    {
+      "source": "ECB",
+      "title": "Piero Cipollone: Shaping the future of money",
+      "summary": "",
+      "link": "https://www.ecb.europa.eu//press/key/date/2026/html/ecb.sp261105~6495a0df6f.en.html",
+      "published": "2026-11-05T07:30:00+00:00",
+      "id": 3
+    },
+    {
+      "source": "EIA",
+      "title": "Refineries have shifted production away from gasoline to middle distillates",
+      "summary": "Particularly high refinery margins for distillate fuel oil and jet fuel have contributed to shifts in the refinery yields of major products in 2026. Data from our latest Petroleum Supply Monthly\u2014which includes data through August 2026\u2014indicate refinery yields of gasoline have decreased significantly this year to support increased production of distillate fuel oil and jet fuel, sometimes referred to as middle distillates due to their relative cut points in the oil refining process.",
+      "link": "https://www.eia.gov/todayinenergy/detail.php?id=68424",
+      "published": "2026-11-05T14:00:00+00:00",
+      "id": 4
     }
   ]
 }
