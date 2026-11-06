@@ -379,3 +379,9 @@ These cover one stretch of about 120 sessions, so a more stressed period could w
 ## 41. README and media for the static site
 
 - **What changed:** the README now leads with the GitHub Pages address, the archive and a link back to kechunwu.github.io. It explains why the site is static and the three trade-offs that came with it (freshness judged in the browser, the demo precomputed, one build per refresh). The diagram adds the build and deploy steps, the file table lists the new modules and `web/`, and the local instructions build and serve the site. `docs/media/record.cjs` now records from a local build of the static site; `docs/screenshot.png` and `docs/demo.gif` were re-recorded from it with the committed data, so they show real numbers. The GIF injects a +50% bad print and then a frozen feed.
+
+## 42. Deploying the Cloudflare scheduler
+
+- **What happened:** the first `wrangler deploy` uploaded the Worker but set no crons. Wrangler also tries to give every Worker a public workers.dev address, and the account had no workers.dev subdomain, so the deploy stopped.
+- **What changed:** `wrangler.toml` now sets `workers_dev = false`, because the Worker only runs on its timer and needs no public address. Cloudflare still requires the account to have a workers.dev subdomain before it accepts cron triggers; opening Workers & Pages in the dashboard once creates it. After that, the deploy set both crons, 11:05 and 11:35 UTC on weekdays. `.wrangler/`, Wrangler's local cache, is now gitignored.
+- **Still open:** the first Worker run is Monday Nov 9. The GitHub token expires after 90 days and has to be renewed with `npx wrangler secret put GITHUB_TOKEN`.

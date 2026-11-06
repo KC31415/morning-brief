@@ -2,6 +2,8 @@
 name = "morning-brief-scheduler"
 main = "src/worker.js"
 compatibility_date = "2026-10-01"
+# Runs only on the timer, so it needs no public workers.dev address
+workers_dev = false
 
 [vars]
 REPO = "kechunwu/morning-brief"
