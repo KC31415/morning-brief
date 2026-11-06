@@ -1,0 +1,1061 @@
+{
+ "version": 1,
+ "date": "2026-11-06",
+ "run_at": "2026-11-06T17:28:18+00:00",
+ "last_fetch": "2026-11-06T17:28:27+00:00",
+ "as_of": "Fri Nov 06, 12:28 PM ET, after the US open",
+ "status": "FAIL",
+ "banner": "1 data check FAILED. Do not rely on flagged rows.",
+ "problems": [
+  {
+   "status": "FAIL",
+   "check": "sanity",
+   "ticker": "VIXCLS",
+   "detail": "latest move is 10.9 robust std devs"
+  }
+ ],
+ "coverage": {
+  "checks": 129,
+  "instruments": 21,
+  "cross_checked": 8,
+  "coarse": 2,
+  "single_source": 13
+ },
+ "headline": "Most unusual move: **Hang Seng +3.67%**, 4.0σ against its own recent volatility. Nothing reaches the 4σ WARN line.",
+ "tiles": [
+  "ES=F",
+  "^TNX",
+  "DX-Y.NYB",
+  "CL=F",
+  "GC=F",
+  "^VIX"
+ ],
+ "groups": [
+  {
+   "name": "Equities",
+   "rows": [
+    {
+     "ticker": "ES=F",
+     "name": "S&P 500 futures",
+     "last": "7438.25",
+     "change": "+0.75%",
+     "tint": "up",
+     "flag": "",
+     "cross_check": "single source",
+     "trend": [
+      7858.0,
+      7855.75,
+      7770.25,
+      7791.0,
+      7704.25,
+      7734.5,
+      7755.25,
+      7800.25,
+      7704.5,
+      7659.75,
+      7714.5,
+      7758.25,
+      7783.25,
+      7754.25,
+      7614.0,
+      7574.5,
+      7596.75,
+      7720.5,
+      7383.0,
+      7438.25
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "NQ=F",
+     "name": "Nasdaq 100 futures",
+     "last": "27213.75",
+     "change": "+1.73%",
+     "tint": "up",
+     "flag": "",
+     "cross_check": "single source",
+     "trend": [
+      30898.25,
+      30791.5,
+      30182.75,
+      30143.75,
+      29391.5,
+      29722.5,
+      29675.25,
+      30007.0,
+      29142.0,
+      29117.75,
+      29437.25,
+      29812.0,
+      29979.5,
+      29562.0,
+      28534.0,
+      28127.5,
+      28305.75,
+      28566.75,
+      26752.0,
+      27213.75
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "RTY=F",
+     "name": "Russell 2000 futures",
+     "last": "2760.90",
+     "change": "+0.93%",
+     "tint": "up",
+     "flag": "",
+     "cross_check": "single source",
+     "trend": [
+      2812.199951,
+      2800.100098,
+      2745.0,
+      2781.800049,
+      2735.5,
+      2742.300049,
+      2786.899902,
+      2794.199951,
+      2796.100098,
+      2784.5,
+      2797.5,
+      2828.5,
+      2839.5,
+      2867.300049,
+      2821.300049,
+      2817.800049,
+      2825.0,
+      2865.899902,
+      2735.399902,
+      2760.899902
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "^STOXX50E",
+     "name": "Euro Stoxx 50",
+     "last": "6170.49",
+     "change": "-0.98%",
+     "tint": "down",
+     "flag": "",
+     "cross_check": "single source",
+     "trend": [
+      6201.209961,
+      6167.009766,
+      6190.370117,
+      6168.259766,
+      6204.22998,
+      6144.810059,
+      6121.660156,
+      6207.52002,
+      6087.009766,
+      6068.220215,
+      6116.22998,
+      6164.689941,
+      6167.810059,
+      6207.069824,
+      6131.310059,
+      6176.060059,
+      6144.560059,
+      6265.709961,
+      6231.540039,
+      6170.490234
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "last session",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "^N225",
+     "name": "Nikkei 225",
+     "last": "61077.90",
+     "change": "-1.79%",
+     "tint": "down",
+     "flag": "",
+     "cross_check": "single source",
+     "trend": [
+      70035.710938,
+      69042.109375,
+      69030.921875,
+      67777.523438,
+      67744.289062,
+      64425.949219,
+      65324.289062,
+      64916.699219,
+      64075.421875,
+      64621.238281,
+      62907.839844,
+      62693.160156,
+      62189.648438,
+      63268.371094,
+      63954.191406,
+      64659.46875,
+      63290.109375,
+      63081.859375,
+      62188.628906,
+      61077.898438
+     ],
+     "from_to": "Wed 11-04 → Thu 11-05",
+     "basis": "last session",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "^HSI",
+     "name": "Hang Seng",
+     "last": "24796.98",
+     "change": "+3.67%",
+     "tint": "up",
+     "flag": "",
+     "cross_check": "single source",
+     "trend": [
+      23785.789062,
+      24211.349609,
+      24271.199219,
+      24345.220703,
+      24314.169922,
+      24062.720703,
+      24186.830078,
+      23867.740234,
+      23651.869141,
+      22934.679688,
+      23093.369141,
+      23211.810547,
+      23041.320312,
+      23094.830078,
+      22958.650391,
+      23294.419922,
+      23393.320312,
+      23525.970703,
+      23919.5,
+      24796.980469
+     ],
+     "from_to": "Wed 11-04 → Thu 11-05",
+     "basis": "last session",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "^VIX",
+     "name": "VIX",
+     "last": "24.16",
+     "change": "-14.27%",
+     "tint": "down",
+     "flag": "❌",
+     "cross_check": "✓ FRED 28.18 (Thu 11-05)",
+     "trend": [
+      15.21,
+      15.27,
+      16.870001,
+      16.459999,
+      19.99,
+      18.440001,
+      17.309999,
+      16.68,
+      19.030001,
+      19.450001,
+      18.389999,
+      17.52,
+      16.91,
+      17.200001,
+      19.42,
+      21.15,
+      20.83,
+      16.610001,
+      28.18,
+      24.16
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    }
+   ]
+  },
+  {
+   "name": "Rates",
+   "rows": [
+    {
+     "ticker": "^IRX",
+     "name": "US 3M T-bill rate",
+     "last": "4.003",
+     "change": "+1.6 bp",
+     "tint": "up",
+     "flag": "",
+     "cross_check": "✓ FRED 4.030 (Wed 11-04)",
+     "trend": [
+      4.05,
+      4.057,
+      4.085,
+      4.088,
+      4.07,
+      4.075,
+      4.08,
+      4.063,
+      4.022,
+      4.032,
+      4.025,
+      4.04,
+      3.995,
+      3.998,
+      3.973,
+      3.982,
+      4.025,
+      4.025,
+      3.987,
+      4.003
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "^FVX",
+     "name": "US 5Y yield",
+     "last": "4.640",
+     "change": "+3.2 bp",
+     "tint": "up",
+     "flag": "",
+     "cross_check": "✓ FRED 4.690 (Wed 11-04)",
+     "trend": [
+      5.019,
+      5.007,
+      4.992,
+      4.899,
+      4.899,
+      4.929,
+      4.935,
+      4.972,
+      4.768,
+      4.805,
+      4.824,
+      4.84,
+      4.871,
+      4.801,
+      4.721,
+      4.693,
+      4.743,
+      4.689,
+      4.608,
+      4.64
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "^TNX",
+     "name": "US 10Y yield",
+     "last": "4.851",
+     "change": "+1.4 bp",
+     "tint": "up",
+     "flag": "",
+     "cross_check": "✓ FRED 4.900 (Wed 11-04)",
+     "trend": [
+      5.24,
+      5.217,
+      5.19,
+      5.089,
+      5.098,
+      5.136,
+      5.117,
+      5.146,
+      4.953,
+      4.988,
+      4.986,
+      4.993,
+      5.045,
+      4.989,
+      4.929,
+      4.894,
+      4.952,
+      4.894,
+      4.837,
+      4.851
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    }
+   ]
+  },
+  {
+   "name": "FX",
+   "rows": [
+    {
+     "ticker": "DX-Y.NYB",
+     "name": "Dollar index",
+     "last": "102.1930",
+     "change": "+0.63%",
+     "tint": "up",
+     "flag": "",
+     "cross_check": "single source",
+     "trend": [
+      102.580002,
+      102.18,
+      102.550003,
+      102.0,
+      101.839996,
+      101.980003,
+      101.730003,
+      101.779999,
+      101.610001,
+      101.809998,
+      101.959999,
+      102.32,
+      102.190002,
+      102.040001,
+      101.879997,
+      101.75,
+      101.870003,
+      101.510002,
+      101.550003,
+      102.193001
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "EURUSD=X",
+     "name": "EUR/USD",
+     "last": "1.1150",
+     "change": "-0.76%",
+     "tint": "down",
+     "flag": "",
+     "cross_check": "✓ ECB 1.1165 (Fri 11-06)",
+     "trend": [
+      1.120473,
+      1.116022,
+      1.120448,
+      1.119507,
+      1.121315,
+      1.122549,
+      1.121579,
+      1.122675,
+      1.123469,
+      1.122146,
+      1.121755,
+      1.117381,
+      1.112966,
+      1.115573,
+      1.118281,
+      1.115685,
+      1.119207,
+      1.120724,
+      1.123495,
+      1.114951
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "USDJPY=X",
+     "name": "USD/JPY",
+     "last": "158.2590",
+     "change": "-0.06%",
+     "tint": "down",
+     "flag": "",
+     "cross_check": "≈ FRED 157.4700 (Fri 10-30), coarse",
+     "trend": [
+      158.203003,
+      158.520004,
+      158.322006,
+      157.957001,
+      158.143005,
+      157.806,
+      158.522995,
+      158.268005,
+      158.132004,
+      156.494003,
+      156.830002,
+      157.528,
+      157.992996,
+      157.832993,
+      157.804001,
+      157.677002,
+      157.914993,
+      158.468994,
+      158.356995,
+      158.259003
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "GBPUSD=X",
+     "name": "GBP/USD",
+     "last": "1.3366",
+     "change": "-0.82%",
+     "tint": "down",
+     "flag": "",
+     "cross_check": "✓ FRED 1.3398 (Fri 10-30)",
+     "trend": [
+      1.324152,
+      1.32098,
+      1.325732,
+      1.323014,
+      1.327316,
+      1.333565,
+      1.330849,
+      1.337327,
+      1.339567,
+      1.340393,
+      1.337775,
+      1.334508,
+      1.33063,
+      1.3328,
+      1.337864,
+      1.338563,
+      1.340986,
+      1.343418,
+      1.347709,
+      1.336612
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    }
+   ]
+  },
+  {
+   "name": "Commodities",
+   "rows": [
+    {
+     "ticker": "CL=F",
+     "name": "WTI crude",
+     "last": "90.23",
+     "change": "-0.32%",
+     "tint": "down",
+     "flag": "",
+     "cross_check": "≈ FRED 99.64 (Tue 11-03), coarse",
+     "trend": [
+      93.739998,
+      94.139999,
+      95.089996,
+      97.970001,
+      101.410004,
+      103.660004,
+      101.790001,
+      97.150002,
+      99.470001,
+      103.269997,
+      101.760002,
+      99.900002,
+      102.779999,
+      102.0,
+      104.120003,
+      96.459999,
+      96.089996,
+      88.120003,
+      90.519997,
+      90.230003
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "NG=F",
+     "name": "Natural gas",
+     "last": "2.98",
+     "change": "+1.29%",
+     "tint": "up",
+     "flag": "",
+     "cross_check": "single source",
+     "trend": [
+      3.167,
+      3.283,
+      3.198,
+      3.236,
+      3.116,
+      3.058,
+      2.963,
+      2.79,
+      2.796,
+      2.64,
+      2.602,
+      2.697,
+      2.817,
+      2.952,
+      2.898,
+      2.856,
+      2.895,
+      2.959,
+      2.947,
+      2.985
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "GC=F",
+     "name": "Gold",
+     "last": "4070.10",
+     "change": "-1.06%",
+     "tint": "down",
+     "flag": "",
+     "cross_check": "single source",
+     "trend": [
+      4190.600098,
+      4177.299805,
+      4107.899902,
+      4170.100098,
+      4181.100098,
+      4160.100098,
+      4142.600098,
+      4150.0,
+      4060.399902,
+      4007.899902,
+      4038.399902,
+      4074.600098,
+      4051.600098,
+      4031.399902,
+      3898.899902,
+      3969.600098,
+      3940.399902,
+      4073.0,
+      4113.5,
+      4070.100098
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "HG=F",
+     "name": "Copper",
+     "last": "6.27",
+     "change": "+0.32%",
+     "tint": "up",
+     "flag": "",
+     "cross_check": "single source",
+     "trend": [
+      6.6985,
+      6.678,
+      6.6115,
+      6.5115,
+      6.531,
+      6.538,
+      6.5665,
+      6.543,
+      6.3625,
+      6.476,
+      6.508,
+      6.622,
+      6.6415,
+      6.581,
+      6.4585,
+      6.5435,
+      6.3785,
+      6.403,
+      6.249,
+      6.269
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "ZC=F",
+     "name": "Corn",
+     "last": "441.00",
+     "change": "+0.23%",
+     "tint": "up",
+     "flag": "",
+     "cross_check": "single source",
+     "trend": [
+      483.0,
+      482.75,
+      480.75,
+      478.0,
+      474.25,
+      467.0,
+      462.0,
+      463.25,
+      460.5,
+      456.0,
+      455.0,
+      448.75,
+      451.75,
+      451.25,
+      447.75,
+      448.25,
+      442.5,
+      444.25,
+      440.0,
+      441.0
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "ZW=F",
+     "name": "Wheat",
+     "last": "593.75",
+     "change": "-0.92%",
+     "tint": "down",
+     "flag": "",
+     "cross_check": "single source",
+     "trend": [
+      672.25,
+      669.25,
+      673.25,
+      670.0,
+      660.5,
+      655.25,
+      643.25,
+      628.25,
+      624.75,
+      625.0,
+      616.0,
+      610.25,
+      599.0,
+      603.75,
+      603.5,
+      606.5,
+      599.75,
+      598.5,
+      599.25,
+      593.75
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    },
+    {
+     "ticker": "ZS=F",
+     "name": "Soybeans",
+     "last": "1188.75",
+     "change": "+0.66%",
+     "tint": "up",
+     "flag": "",
+     "cross_check": "single source",
+     "trend": [
+      1287.75,
+      1283.75,
+      1277.25,
+      1263.0,
+      1261.25,
+      1253.5,
+      1248.25,
+      1245.25,
+      1253.0,
+      1256.5,
+      1241.25,
+      1229.25,
+      1224.5,
+      1219.75,
+      1222.25,
+      1204.75,
+      1203.0,
+      1193.25,
+      1181.0,
+      1188.75
+     ],
+     "from_to": "Thu 11-05 → Fri 11-06",
+     "basis": "live",
+     "source": "Yahoo"
+    }
+   ]
+  }
+ ],
+ "ranking": [
+  {
+   "name": "Hang Seng",
+   "change": "+3.67%",
+   "z": 3.994
+  },
+  {
+   "name": "EUR/USD",
+   "change": "−0.76%",
+   "z": 3.62
+  },
+  {
+   "name": "GBP/USD",
+   "change": "−0.82%",
+   "z": 2.409
+  },
+  {
+   "name": "Dollar index",
+   "change": "+0.63%",
+   "z": 2.397
+  },
+  {
+   "name": "VIX",
+   "change": "−14.27%",
+   "z": 2.177
+  },
+  {
+   "name": "Nasdaq 100 futures",
+   "change": "+1.73%",
+   "z": 1.615
+  },
+  {
+   "name": "Nikkei 225",
+   "change": "−1.79%",
+   "z": 1.365
+  },
+  {
+   "name": "Euro Stoxx 50",
+   "change": "−0.98%",
+   "z": 1.224
+  },
+  {
+   "name": "Russell 2000 futures",
+   "change": "+0.93%",
+   "z": 1.145
+  },
+  {
+   "name": "S&P 500 futures",
+   "change": "+0.75%",
+   "z": 1.108
+  },
+  {
+   "name": "US 3M T-bill rate",
+   "change": "+1.6 bp",
+   "z": 0.938
+  },
+  {
+   "name": "Soybeans",
+   "change": "+0.66%",
+   "z": 0.923
+  },
+  {
+   "name": "Gold",
+   "change": "−1.06%",
+   "z": 0.889
+  },
+  {
+   "name": "US 5Y yield",
+   "change": "+3.2 bp",
+   "z": 0.799
+  },
+  {
+   "name": "Wheat",
+   "change": "−0.92%",
+   "z": 0.58
+  },
+  {
+   "name": "Natural gas",
+   "change": "+1.29%",
+   "z": 0.474
+  },
+  {
+   "name": "US 10Y yield",
+   "change": "+1.4 bp",
+   "z": 0.3
+  },
+  {
+   "name": "Copper",
+   "change": "+0.32%",
+   "z": 0.272
+  },
+  {
+   "name": "Corn",
+   "change": "+0.23%",
+   "z": 0.236
+  },
+  {
+   "name": "USD/JPY",
+   "change": "−0.06%",
+   "z": 0.225
+  },
+  {
+   "name": "WTI crude",
+   "change": "−0.32%",
+   "z": 0.103
+  }
+ ],
+ "thresholds": {
+  "warn": 4.0,
+  "fail": 10.0
+ },
+ "too_short": [],
+ "schedule": {
+  "state": "no_events",
+  "today": [],
+  "upcoming": {
+   "2026-11-09": [
+    {
+     "event": "Monthly Wholesale Trade: Sales and Inventories, September 2026",
+     "time": "10:00 AM ET",
+     "sort": "10:00",
+     "sources": [
+      [
+       "Census",
+       "https://www.census.gov/economic-indicators/calendar-listview.html"
+      ]
+     ]
+    },
+    {
+     "event": "13-Week Bill auction",
+     "time": "11:30 AM ET",
+     "sort": "11:30",
+     "sources": [
+      [
+       "Treasury",
+       "https://www.treasurydirect.gov/auctions/upcoming/"
+      ]
+     ]
+    },
+    {
+     "event": "26-Week Bill auction",
+     "time": "11:30 AM ET",
+     "sort": "11:30",
+     "sources": [
+      [
+       "Treasury",
+       "https://www.treasurydirect.gov/auctions/upcoming/"
+      ]
+     ]
+    },
+    {
+     "event": "3-Year Note auction",
+     "time": "1:00 PM ET",
+     "sort": "13:00",
+     "sources": [
+      [
+       "Treasury",
+       "https://www.treasurydirect.gov/auctions/upcoming/"
+      ]
+     ]
+    },
+    {
+     "event": "6-Week Bill auction",
+     "time": "1:00 PM ET",
+     "sort": "13:00",
+     "sources": [
+      [
+       "Treasury",
+       "https://www.treasurydirect.gov/auctions/upcoming/"
+      ]
+     ]
+    }
+   ],
+   "2026-11-10": [
+    {
+     "event": "10-Year Note auction",
+     "time": "1:00 PM ET",
+     "sort": "13:00",
+     "sources": [
+      [
+       "Treasury",
+       "https://www.treasurydirect.gov/auctions/upcoming/"
+      ]
+     ]
+    }
+   ],
+   "2026-11-11": [],
+   "2026-11-12": [
+    {
+     "event": "Business Formation Statistics, October 2026",
+     "time": "10:00 AM ET",
+     "sort": "10:00",
+     "sources": [
+      [
+       "Census",
+       "https://www.census.gov/economic-indicators/calendar-listview.html"
+      ]
+     ]
+    },
+    {
+     "event": "30-Year Bond auction",
+     "time": "1:00 PM ET",
+     "sort": "13:00",
+     "sources": [
+      [
+       "Treasury",
+       "https://www.treasurydirect.gov/auctions/upcoming/"
+      ]
+     ]
+    },
+    {
+     "event": "17-Week Bill auction",
+     "time": "time not published",
+     "sort": "99:99",
+     "sources": [
+      [
+       "Treasury",
+       "https://www.treasurydirect.gov/auctions/upcoming/"
+      ]
+     ]
+    },
+    {
+     "event": "4-Week Bill auction",
+     "time": "time not published",
+     "sort": "99:99",
+     "sources": [
+      [
+       "Treasury",
+       "https://www.treasurydirect.gov/auctions/upcoming/"
+      ]
+     ]
+    },
+    {
+     "event": "8-Week Bill auction",
+     "time": "time not published",
+     "sort": "99:99",
+     "sources": [
+      [
+       "Treasury",
+       "https://www.treasurydirect.gov/auctions/upcoming/"
+      ]
+     ]
+    }
+   ],
+   "2026-11-13": []
+  },
+  "failed": [],
+  "covered": [
+   "BEA",
+   "Census",
+   "FOMC",
+   "ECB",
+   "Treasury"
+  ]
+ },
+ "news": {
+  "model": "claude-haiku-5-5",
+  "bullets": [
+   {
+    "bullet": "The U.S. Energy Information Administration reported that U.S. crude oil imports from Venezuela averaged 701,000 b/d in July 2026, the most since May 2017, before falling to 655,000 b/d in August.",
+    "sources": [
+     2
+    ]
+   },
+   {
+    "bullet": "The ECB published consolidated banking data for end-June 2026.",
+    "sources": [
+     1
+    ]
+   }
+  ],
+  "headlines": [
+   {
+    "source": "ECB",
+    "title": "ECB publishes consolidated banking data for end-June 2026",
+    "summary": "",
+    "link": "https://www.ecb.europa.eu//press/pr/date/2026/html/ecb.pr261106~356f2fc73a.en.html",
+    "published": "2026-11-06T09:00:00+00:00",
+    "id": 1
+   },
+   {
+    "source": "EIA",
+    "title": "U.S. crude oil imports from Venezuela in July were highest since 2017",
+    "summary": "In July 2026, U.S. imports of crude oil from Venezuela averaged 701,000 barrels per day (b/d), the most since May 2017, before decreasing to 655,000 b/d in August, according to data published in our Petroleum Supply Monthly",
+    "link": "https://www.eia.gov/todayinenergy/detail.php?id=68425",
+    "published": "2026-11-06T14:00:00+00:00",
+    "id": 2
+   }
+  ],
+  "error": null
+ },
+ "note": "Morning Brief, data as of Fri Nov 06, 12:28 PM ET, after the US open\nData checks: 1 data check FAILED. Do not rely on flagged rows. (129 checks; 8 of 21 instruments cross-checked)\nFlagged, don't rely on: VIX ❌\n\nBiggest moves against their own volatility (WARN at 4σ):\n  Hang Seng +3.67% (4.0σ)\n  EUR/USD −0.76% (3.6σ)\n  GBP/USD −0.82% (2.4σ)\n  Dollar index +0.63% (2.4σ)\n  VIX −14.27% (2.2σ)\n\nUS rates: 3M T-bill rate 4.003 (+1.6 bp), 5Y yield 4.640 (+3.2 bp), 10Y yield 4.851 (+1.4 bp)\n\nScheduled today:\n  Nothing listed in the calendars that loaded.\n  Not covered: BLS (CPI, jobs). Check bls.gov.\n\nChanges cover different periods by market; 'live' means the session was open when fetched, not a real-time price. Free public data, not production market data. https://kechunwu.github.io/morning-brief/"
+}
